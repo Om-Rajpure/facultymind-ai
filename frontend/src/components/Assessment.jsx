@@ -217,9 +217,14 @@ const assessmentQuestions = [
   }
 ];
 
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+
 const Assessment = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleOptionSelect = (value) => {
@@ -240,8 +245,9 @@ const Assessment = () => {
     }
   };
 
-  const handleSubmit = () => {
-    // Generate feature vector
+  const handleSubmit = async () => {
+    setLoading(true);
+    // Generate feature scores
     const categories = [
       "Teaching Workload",
       "Mental Stress",
@@ -251,7 +257,7 @@ const Assessment = () => {
       "Institutional Support"
     ];
 
-    const featureVector = {};
+    const categoryScores = {};
     categories.forEach((cat, index) => {
       const catStartIndex = index * 3;
       const q1 = answers[catStartIndex] || 3;
@@ -259,13 +265,45 @@ const Assessment = () => {
       const q3 = answers[catStartIndex + 2] || 3;
       
       const avg = (q1 + q2 + q3) / 3;
-      const key = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_').replace(/-/g, '_');
-      featureVector[key] = parseFloat(avg.toFixed(2));
+      categoryScores[cat] = avg;
     });
 
-    // Store in localStorage for results page
-    localStorage.setItem('last_assessment_result', JSON.stringify(featureVector));
-    navigate('/assessment-result');
+    try {
+      // Input for API:
+      // { workload, stress, sleep, balance, satisfaction, support, age, experience, email }
+      const payload = {
+        workload: categoryScores["Teaching Workload"],
+        stress: categoryScores["Mental Stress"],
+        sleep: categoryScores["Sleep & Physical Health"],
+        balance: categoryScores["Work-Life Balance"],
+        satisfaction: categoryScores["Job Satisfaction"],
+        support: categoryScores["Institutional Support"],
+        age: user?.age || 35,
+        experience: user?.experience || 10,
+        email: user?.email
+      };
+
+      const response = await axios.post('http://localhost:8000/api/predict-burnout/', payload);
+      
+      // Store raw scores + prediction metadata in localStorage for results page
+      const resultData = {
+        ...response.data, // burnout_index, risk_level, factors
+        teaching_workload: payload.workload,
+        mental_stress: payload.stress,
+        sleep_physical_health: payload.sleep,
+        work_life_balance: payload.balance,
+        job_satisfaction: payload.satisfaction,
+        institutional_support: payload.support
+      };
+
+      localStorage.setItem('last_assessment_result', JSON.stringify(resultData));
+      navigate('/assessment-result');
+    } catch (error) {
+      console.error("Prediction failed:", error);
+      alert("Something went wrong with the AI prediction. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const progress = ((currentStep + 1) / assessmentQuestions.length) * 100;
@@ -370,11 +408,11 @@ const Assessment = () => {
 
           <button
             onClick={nextStep}
-            disabled={!isSelected}
-            className={`btn-primary px-10 ${!isSelected ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+            disabled={!isSelected || loading}
+            className={`btn-primary px-10 ${(!isSelected || loading) ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
           >
-            {currentStep === assessmentQuestions.length - 1 ? 'Submit Assessment' : 'Next Question'}
-            {currentStep === assessmentQuestions.length - 1 ? <CheckCircle2 size={20} /> : <ChevronRight size={20} />}
+            {loading ? 'Calculating...' : (currentStep === assessmentQuestions.length - 1 ? 'Submit Assessment' : 'Next Question')}
+            {loading ? <RefreshCcw className="animate-spin" size={20} /> : (currentStep === assessmentQuestions.length - 1 ? <CheckCircle2 size={20} /> : <ChevronRight size={20} />)}
           </button>
         </div>
       </div>

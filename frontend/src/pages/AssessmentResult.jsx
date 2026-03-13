@@ -46,30 +46,38 @@ const AssessmentResult = () => {
     const featureVector = JSON.parse(rawData);
     setData(featureVector);
 
-    // Weighted Burnout Index Calculation
-    // stress (30%) + workload (25%) + sleep (20%) + balance (15%) + satisfaction (10%)
-    // Since support is an inverse factor for wellbeing, we use it for insights but not directly in the simple weighted burnout index for now, 
-    // or we can subtract it if values were 1-5 (good-bad). 
-    // Actually, in my questions 1 is good, 5 is bad for most.
-    
-    const index = (
-      (featureVector.mental_stress * 0.30) +
-      (featureVector.teaching_workload * 0.25) +
-      (featureVector.sleep_physical_health * 0.20) +
-      (featureVector.work_life_balance * 0.15) +
-      (featureVector.job_satisfaction * 0.10)
-    );
-
-    // Normalize index from 1-5 scale to 0-100
-    const normalizedIndex = ((index - 1) / 4) * 100;
-    setBurnoutIndex(Math.round(normalizedIndex));
-
-    if (normalizedIndex <= 30) {
-      setRisk({ level: 'Low Risk', color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20', icon: <CheckCircle className="text-green-400" /> });
-    } else if (normalizedIndex <= 60) {
-      setRisk({ level: 'Medium Risk', color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20', icon: <Info className="text-yellow-400" /> });
+    // Prioritize API results if available
+    if (featureVector.burnout_index !== undefined && featureVector.risk_level) {
+      setBurnoutIndex(featureVector.burnout_index);
+      
+      const level = featureVector.risk_level;
+      if (level === 'Low') {
+        setRisk({ level: 'Low Risk', color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20', icon: <CheckCircle className="text-green-400" /> });
+      } else if (level === 'Medium') {
+        setRisk({ level: 'Medium Risk', color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20', icon: <Info className="text-yellow-400" /> });
+      } else {
+        setRisk({ level: 'High Risk', color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20', icon: <AlertTriangle className="text-red-400" /> });
+      }
     } else {
-      setRisk({ level: 'High Risk', color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20', icon: <AlertTriangle className="text-red-400" /> });
+      // Fallback to local calculation if API failed or data is manual
+      const index = (
+        (featureVector.mental_stress * 0.30) +
+        (featureVector.teaching_workload * 0.25) +
+        (featureVector.sleep_physical_health * 0.20) +
+        (featureVector.work_life_balance * 0.15) +
+        (featureVector.job_satisfaction * 0.10)
+      );
+
+      const normalizedIndex = ((index - 1) / 4) * 100;
+      setBurnoutIndex(Math.round(normalizedIndex));
+
+      if (normalizedIndex <= 30) {
+        setRisk({ level: 'Low Risk', color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20', icon: <CheckCircle className="text-green-400" /> });
+      } else if (normalizedIndex <= 60) {
+        setRisk({ level: 'Medium Risk', color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20', icon: <Info className="text-yellow-400" /> });
+      } else {
+        setRisk({ level: 'High Risk', color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20', icon: <AlertTriangle className="text-red-400" /> });
+      }
     }
   }, [navigate]);
 

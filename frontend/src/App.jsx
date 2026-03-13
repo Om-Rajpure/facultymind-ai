@@ -8,6 +8,8 @@ import ProfileSetup from './pages/ProfileSetup.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import AssessmentResult from './pages/AssessmentResult.jsx';
 import Assessment from './components/Assessment.jsx';
+import Chatbot from './pages/Chatbot.jsx';
+import ChatWidget from './components/ChatWidget.jsx';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
@@ -66,7 +68,17 @@ function AppContent() {
             </ProtectedRoute>
           } 
         />
+
+        <Route
+          path="/chatbot"
+          element={
+            <ProtectedRoute>
+              <Chatbot />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
+      <ChatWidget />
     </MainLayout>
   );
 }

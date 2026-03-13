@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { ClipboardList, History, ArrowRight } from 'lucide-react';
+import { ClipboardList, History, ArrowRight, Bot } from 'lucide-react';
 import Section from '../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +27,15 @@ const Dashboard = () => {
       color: "from-sky-500/20 to-blue-500/20",
       borderColor: "border-secondary/30",
       onClick: () => navigate('/assessment-result')
+    },
+    {
+      title: "Chat with Wellness AI",
+      description: "Get personalized guidance based on your burnout score and top stress factors.",
+      icon: <Bot className="text-purple-400" size={32} />,
+      btnText: "Open Chat",
+      color: "from-purple-500/20 to-pink-500/20",
+      borderColor: "border-purple-400/30",
+      onClick: () => navigate('/chatbot')
     }
   ];
 
