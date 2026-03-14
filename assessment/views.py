@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.db.models import Q
 from rest_framework import status
 from .models import UserProfile, AssessmentResult, ChatSession, ChatMessage, Reminder
 from .serializers import AssessmentResultSerializer, ChatMessageSerializer, ChatSessionSerializer, ReminderSerializer
@@ -215,70 +216,79 @@ def list_reminders(request):
 @permission_classes([AllowAny])
 def chat_unified(request):
     """
-    Unified single-call chat endpoint.
+    Unified Gemini-powered chat endpoint with debug logging.
     POST /api/chat/
-    Body: { "email": "...", "name": "...", "message": "..." }
-    Response: { "reply": "...", "suggested_actions": [...], "session_id": ..., "reminder_created": bool }
-
-    On first call (no session exists), auto-creates session and returns bot greeting + reply.
-    On subsequent calls, uses existing session.
+    Body: { "user_id": 1, "message": "..." } OR { "email": "...", "message": "..." }
     """
-    from .chatbot_engine import get_bot_response
+    from .chatbot_engine import _build_context
+    from backend.chatbot.gemini_service import ask_gemini
+    
     data = request.data
+    user_id = data.get('user_id')
     email = data.get('email', '').strip()
-    name = data.get('name', 'Professor').strip()
     user_message = data.get('message', '').strip()
 
-    if not email:
-        return Response({"error": "email is required"}, status=status.HTTP_400_BAD_REQUEST)
+    print(f"DEBUG: Received message: '{user_message}' for user_id: {user_id} or email: {email}")
+
+    if not user_id and not email:
+        return Response({"reply": "user_id or email is required"}, status=status.HTTP_400_BAD_REQUEST)
     if not user_message:
-        return Response({"error": "message is required"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"reply": "message is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Resolve user
+    user_profile = UserProfile.objects.filter(Q(id=user_id) | Q(email=email)).first()
+    
+    if user_profile:
+        email = user_profile.email
+        name = user_profile.name
+    else:
+        name = "Professor"
+        email = email or "guest@facultymind.ai"
 
     # Get or create session
     session, created = ChatSession.objects.get_or_create(
         user_email=email,
         defaults={'user_name': name}
     )
-    if not created and name:
-        session.user_name = name
-        session.save(update_fields=['user_name'])
 
     # Save user message
     ChatMessage.objects.create(session=session, role='user', content=user_message)
 
-    # Generate bot response
-    bot_response = get_bot_response(user_message, session)
-    bot_text = bot_response.get('message', "I'm here to help! Please tell me more.")
-    chips = bot_response.get('suggested_chips', [])
+    # Fetch context from database
+    ctx_data = _build_context(email, session)
+    
+    # Construct context string for Gemini
+    context_str = f"""
+Name: {name}
+Department: {ctx_data.get('department', 'Engineering')}
+Burnout Index: {ctx_data.get('burnout_index', 'Not assessed')}
+Risk Level: {ctx_data.get('risk_level', 'Unknown')}
+Stress Score: {ctx_data.get('scores', {}).get('stress_score', 'N/A')}
+Workload Score: {ctx_data.get('scores', {}).get('workload_score', 'N/A')}
+Sleep Score: {ctx_data.get('scores', {}).get('sleep_score', 'N/A')}
+"""
+
+    try:
+        # Using the new ask_gemini with message and context
+        bot_text = ask_gemini(user_message, context_str)
+    except Exception as e:
+        print(f"DEBUG: Gemini call failed with error: {str(e)}")
+        bot_text = None
+
+    if not bot_text:
+        bot_text = "Sorry, the AI assistant is temporarily unavailable."
+
+    # Suggested actions/chips
+    from .chatbot_engine import _handle_fallback
+    chips = _handle_fallback(ctx_data).get('suggested_chips', [])
 
     # Save bot message
     bot_msg = ChatMessage.objects.create(session=session, role='bot', content=bot_text)
 
-    # Handle reminder
-    reminder_created = False
-    reminder_data = bot_response.get('reminder_detected')
-    if reminder_data and reminder_data.get('user_email'):
-        from datetime import datetime
-        scheduled_raw = reminder_data.get('scheduled_for')
-        scheduled_dt = None
-        if scheduled_raw:
-            try:
-                scheduled_dt = datetime.fromisoformat(scheduled_raw)
-            except Exception:
-                pass
-        Reminder.objects.create(
-            user_email=reminder_data['user_email'],
-            reminder_type=reminder_data.get('reminder_type', 'custom'),
-            message=reminder_data.get('message', user_message),
-            scheduled_for=scheduled_dt
-        )
-        reminder_created = True
-
     return Response({
         "reply": bot_text,
-        "suggested_actions": chips,
+        "suggestions": chips,
         "session_id": session.id,
-        "reminder_created": reminder_created,
         "timestamp": bot_msg.timestamp,
     }, status=status.HTTP_200_OK)
 

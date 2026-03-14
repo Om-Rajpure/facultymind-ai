@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Bot, Loader2, BellPlus } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, Loader2, BellPlus, Maximize2, Minimize2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
@@ -8,6 +8,7 @@ const API = 'http://localhost:8000/api';
 
 // Format bot messages: bold **text**, newlines
 function formatMessage(text) {
+  if (!text) return '';
   const parts = text.split(/(\*\*[^*]+\*\*|\n)/g);
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
@@ -24,15 +25,18 @@ function TypingIndicator() {
       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shrink-0">
         <Bot size={12} className="text-white" />
       </div>
-      <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-white/5 border border-white/10 flex gap-1 items-center">
-        {[0, 1, 2].map(i => (
-          <motion.div
-            key={i}
-            className="w-1.5 h-1.5 rounded-full bg-primary/70"
-            animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
-          />
-        ))}
+      <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-white/5 border border-white/10 flex gap-2 items-center">
+        <span className="text-xs text-slate-400 italic">FacultyMind AI is typing...</span>
+        <div className="flex gap-1">
+          {[0, 1, 2].map(i => (
+            <motion.div
+              key={i}
+              className="w-1 h-1 rounded-full bg-primary/70"
+              animate={{ y: [0, -3, 0] }}
+              transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -42,20 +46,19 @@ const QUICK_CHIPS = [
   'Explain my burnout score',
   'What should I improve first?',
   'Give me stress tips',
-  'Set a reminder',
-  'Show my last assessment summary',
+  'Show my last assessment',
 ];
 
 export default function ChatWidget() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState([]);
   const [chips, setChips] = useState(QUICK_CHIPS);
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [typing, setTyping] = useState(false);
-  const [reminderCreated, setReminderCreated] = useState(false);
   const bottomRef = useRef(null);
 
   // Detect if user has assessment data (enriches responses)
@@ -85,11 +88,10 @@ export default function ChatWidget() {
       setMessages(res.data.messages || []);
     } catch {
       // Offline fallback welcome
-      const firstName = user?.name?.split(' ')[0] || 'Professor';
       const lastResult = (() => { try { return JSON.parse(localStorage.getItem('last_assessment_result') || 'null'); } catch { return null; } })();
       const fallbackMsg = lastResult
-        ? `Hello, ${firstName}! 👋 I can see your burnout index is **${lastResult.burnout_index ?? '?'}%**. Ask me anything about your results or how to improve.`
-        : `Hello, ${firstName}! 👋 I'm your FacultyMind Wellness Assistant. How can I help you today?`;
+        ? `Hello, **${user?.name || 'Professor'}**! 👋 I can see your burnout index is **${lastResult.burnout_index ?? '?'}%**. Ask me anything about your results or how to improve.`
+        : `Hello, **${user?.name || 'Professor'}**! 👋 I'm your FacultyMind Wellness Assistant. How can I help you today?`;
       setMessages([{ id: 0, role: 'bot', content: fallbackMsg, timestamp: new Date().toISOString() }]);
     } finally {
       setLoading(false);
@@ -103,31 +105,26 @@ export default function ChatWidget() {
     setInput('');
     setMessages(prev => [...prev, { id: Date.now(), role: 'user', content: msg, timestamp: new Date().toISOString() }]);
     setTyping(true);
-    setReminderCreated(false);
 
     try {
-      let botContent, newChips, reminderFlag;
+      let botContent, newChips;
 
-      if (sessionId) {
-        // Session-based flow
-        const res = await axios.post(`${API}/chat/message/`, { session_id: sessionId, message: msg });
-        botContent = res.data.bot_message.content;
-        newChips = res.data.suggested_chips;
-        reminderFlag = res.data.reminder_created;
-      } else {
-        // Unified fallback (no session yet)
-        const res = await axios.post(`${API}/chat/`, { email: userEmail, name: user?.name || 'Professor', message: msg });
-        botContent = res.data.reply;
-        newChips = res.data.suggested_actions;
-        reminderFlag = res.data.reminder_created;
-        if (res.data.session_id) setSessionId(res.data.session_id);
-      }
+      // Unified Gemini-powered chat API
+      const res = await axios.post(`${API}/chat/`, { 
+        email: userEmail,
+        user_id: user?.id,
+        message: msg 
+      });
+      
+      botContent = res.data.reply;
+      newChips = res.data.suggestions;
+      if (res.data.session_id) setSessionId(res.data.session_id);
 
       setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', content: botContent, timestamp: new Date().toISOString() }]);
       if (newChips?.length) setChips(newChips);
-      if (reminderFlag) setReminderCreated(true);
-    } catch {
-      setMessages(prev => [...prev, { id: Date.now(), role: 'bot', content: "I'm having trouble reaching the server. Please ensure the backend is running on port 8000.", timestamp: new Date().toISOString() }]);
+    } catch (err) {
+      const errorMsg = err.response?.data?.reply || "I'm here to help with faculty burnout insights and workload management. Could you please rephrase your question?";
+      setMessages(prev => [...prev, { id: Date.now(), role: 'bot', content: errorMsg, timestamp: new Date().toISOString() }]);
     } finally {
       setTyping(false);
     }
@@ -151,7 +148,10 @@ export default function ChatWidget() {
     <>
       {/* Floating Button */}
       <motion.button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => {
+          setOpen(o => !o);
+          if (open) setIsExpanded(false);
+        }}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         whileHover={{ scale: 1.1 }}
@@ -178,10 +178,16 @@ export default function ChatWidget() {
         {open && (
           <motion.div
             initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            animate={{ 
+              opacity: 1, 
+              y: 0, 
+              scale: 1,
+              width: isExpanded ? '720px' : '360px',
+              height: isExpanded ? '80vh' : '500px',
+            }}
             exit={{ opacity: 0, y: 40, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed bottom-28 right-8 z-50 w-[380px] max-h-[560px] flex flex-col rounded-3xl overflow-hidden"
+            className={`fixed bottom-28 right-8 z-50 flex flex-col rounded-3xl overflow-hidden transition-[width,height] duration-500`}
             style={{
               background: 'rgba(11, 15, 42, 0.92)',
               backdropFilter: 'blur(24px)',
@@ -202,13 +208,14 @@ export default function ChatWidget() {
                 </p>
               </div>
               <div className="ml-auto flex items-center gap-2">
+                <button 
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                >
+                  {isExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                </button>
                 {hasAssessmentData && (
                   <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-semibold">🧠 Personalised</span>
-                )}
-                {reminderCreated && (
-                  <div className="flex items-center gap-1 text-xs text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded-full">
-                    <BellPlus size={11} /> Set!
-                  </div>
                 )}
               </div>
             </div>
@@ -240,7 +247,7 @@ export default function ChatWidget() {
             {/* Quick Chips */}
             {!loading && (
               <div className="px-4 pb-2 flex gap-2 overflow-x-auto scrollbar-thin">
-                {chips.slice(0, 3).map((chip) => (
+                {chips.map((chip) => (
                   <button
                     key={chip}
                     onClick={() => sendMessage(chip)}
@@ -261,11 +268,11 @@ export default function ChatWidget() {
                   onKeyDown={handleKeyDown}
                   placeholder="Ask me anything..."
                   className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 outline-none"
-                  disabled={!sessionId || typing}
+                  disabled={typing}
                 />
                 <button
                   onClick={() => sendMessage()}
-                  disabled={!input.trim() || !sessionId || typing}
+                  disabled={!input.trim() || typing}
                   className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center disabled:opacity-40 hover:scale-110 transition-transform"
                 >
                   <Send size={14} className="text-white" />
