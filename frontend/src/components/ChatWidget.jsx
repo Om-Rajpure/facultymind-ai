@@ -187,7 +187,7 @@ export default function ChatWidget() {
             }}
             exit={{ opacity: 0, y: 40, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className={`fixed bottom-28 right-8 z-50 flex flex-col rounded-3xl overflow-hidden transition-[width,height] duration-500`}
+            className={`fixed bottom-28 right-8 z-50 flex flex-col rounded-3xl overflow-hidden`}
             style={{
               background: 'rgba(11, 15, 42, 0.92)',
               backdropFilter: 'blur(24px)',

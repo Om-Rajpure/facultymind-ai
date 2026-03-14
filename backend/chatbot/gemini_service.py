@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import time
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 def get_client():
     api_key = os.getenv("GEMINI_API_KEY")
