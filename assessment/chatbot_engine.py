@@ -3,7 +3,8 @@ Intelligent personalized chatbot engine for FacultyMind.
 Every response uses REAL data: actual assessment scores, profile details,
 and recent chat history to generate genuinely contextual wellness guidance.
 """
-from .models import UserProfile, AssessmentResult, ChatMessage
+from .models import AssessmentResult, ChatMessage
+from accounts.models import User
 
 # ── Keyword routing ────────────────────────────────────────────────────────────
 
@@ -486,13 +487,13 @@ def _build_context(email, session=None):
     ctx = {'name': 'Professor', 'has_assessment': False, 'email': email}
 
     # Load profile
-    profile = UserProfile.objects.filter(email=email).first()
-    if profile:
-        ctx['name'] = profile.name
-        ctx['age'] = profile.age
-        ctx['experience'] = profile.experience
-        if profile.department:
-            ctx['department'] = profile.department.name
+    user = User.objects.filter(email=email).first()
+    if user:
+        ctx['name'] = user.get_full_name() or user.username
+        ctx['age'] = user.age
+        ctx['experience'] = user.experience
+        if user.department:
+            ctx['department'] = user.department.name
 
     # Load latest assessment
     result = AssessmentResult.objects.filter(user__email=email).order_by('-created_at').first()

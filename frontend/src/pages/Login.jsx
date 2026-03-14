@@ -2,20 +2,42 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 import { Facebook } from 'lucide-react';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleMockLogin = (provider) => {
-    const mockUser = {
-      name: "Professor John Doe",
-      email: "john.doe@university.edu",
-      profilePicture: null,
-    };
-    login(mockUser);
-    navigate('/select-role');
+  const handleAuth = async (provider) => {
+    try {
+      // In a real app, this would be the result of a Google OAuth flow
+      const mockGoogleData = {
+        email: "professor.doe@university.edu",
+        name: "Professor John Doe",
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/accounts/google/login/`, mockGoogleData);
+      
+      const { user, access, refresh } = response.data;
+      login(user, { access, refresh });
+      
+      // Redirect based on role and workspace status
+      if (user.role === 'admin' && !user.workspace) {
+        navigate('/create-workspace');
+      } else if (user.role === 'teacher' && !user.workspace) {
+        navigate('/join-workspace');
+      } else if (user.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert('Authentication failed. Please try again.');
+    }
   };
 
   const GoogleIcon = () => (
@@ -59,7 +81,7 @@ const Login = () => {
 
               <div className="space-y-4 relative">
                 <button 
-                  onClick={() => handleMockLogin('Google')}
+                  onClick={() => handleAuth('Google')}
                   className="w-full btn-primary justify-center py-4 bg-white text-bg-dark hover:bg-slate-100 hover-glow"
                 >
                   <GoogleIcon />
@@ -67,7 +89,7 @@ const Login = () => {
                 </button>
                 
                 <button 
-                  onClick={() => handleMockLogin('Facebook')}
+                  onClick={() => handleAuth('Facebook')}
                   className="w-full btn-secondary justify-center py-4 hover-glow"
                 >
                   <Facebook size={20} className="text-[#1877F2]" />

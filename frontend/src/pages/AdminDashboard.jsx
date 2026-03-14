@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 import { 
   Users, 
   ClipboardCheck, 
@@ -35,6 +36,7 @@ import Section from '../components/ui/Section';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const AdminDashboard = () => {
+  const { user, tokens } = useAuth();
   const [stats, setStats] = useState({
     total_teachers: 0,
     total_assessments: 0,
@@ -61,11 +63,12 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     try {
       setLoading(true);
+      const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
       const [overviewRes, deptRes, highRiskRes, facultyRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/admin/overview/`),
-        axios.get(`${API_BASE_URL}/admin/department-analytics/`),
-        axios.get(`${API_BASE_URL}/admin/high-risk/`),
-        axios.get(`${API_BASE_URL}/admin/faculty/`)
+        axios.get(`${API_BASE_URL}/admin/overview/`, config),
+        axios.get(`${API_BASE_URL}/admin/department-analytics/`, config),
+        axios.get(`${API_BASE_URL}/admin/high-risk/`, config),
+        axios.get(`${API_BASE_URL}/admin/faculty/`, config)
       ]);
 
       setStats(overviewRes.data);
@@ -81,7 +84,9 @@ const AdminDashboard = () => {
 
   const fetchFacultyHistory = async (id) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/admin/faculty/${id}/history/`);
+      const res = await axios.get(`${API_BASE_URL}/admin/faculty/${id}/history/`, {
+        headers: { Authorization: `Bearer ${tokens.access}` }
+      });
       setFacultyHistory(res.data);
       setIsHistoryOpen(true);
     } catch (error) {
@@ -93,11 +98,11 @@ const AdminDashboard = () => {
     if (!messageText.trim()) return;
     setSendingMessage(true);
     try {
-      const admin = JSON.parse(localStorage.getItem('facultymind_user'));
       await axios.post(`${API_BASE_URL}/admin/send-message/`, {
-        admin_id: admin.id,
         teacher_id: selectedFaculty.id,
         message: messageText
+      }, {
+        headers: { Authorization: `Bearer ${tokens.access}` }
       });
       setIsMessageOpen(false);
       setMessageText("");

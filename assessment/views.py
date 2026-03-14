@@ -1,14 +1,15 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Q, Avg, Count, OuterRef, Subquery
 from rest_framework import status
-from .models import UserProfile, AssessmentResult, ChatSession, ChatMessage, Reminder, AdminMessage, Notification
+from .models import AssessmentResult, ChatSession, ChatMessage, Reminder, AdminMessage, Notification
+from accounts.models import User
 from .serializers import AssessmentResultSerializer, ChatMessageSerializer, ChatSessionSerializer, ReminderSerializer
 from ml_model.predict import predict_burnout
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def predict_burnout_view(request):
     data = request.data
     try:
@@ -24,56 +25,35 @@ def predict_burnout_view(request):
         ]
         prediction_result = predict_burnout(features)
         
-        email = data.get('email')
-        user_profile = None
-        if email:
-            user_profile = UserProfile.objects.filter(email=email).first()
-
-        if user_profile:
-            AssessmentResult.objects.create(
-                user=user_profile,
-                workload_score=features[0],
-                stress_score=features[1],
-                sleep_score=features[2],
-                balance_score=features[3],
-                satisfaction_score=features[4],
-                support_score=features[5],
-                burnout_index=prediction_result['burnout_index'],
-                risk_level=prediction_result['risk_level']
-            )
-        else:
-            # Temporary fix: save result without user if authentication is not implemented
-            AssessmentResult.objects.create(
-                user=None,
-                workload_score=features[0],
-                stress_score=features[1],
-                sleep_score=features[2],
-                balance_score=features[3],
-                satisfaction_score=features[4],
-                support_score=features[5],
-                burnout_index=prediction_result['burnout_index'],
-                risk_level=prediction_result['risk_level']
-            )
+        user = request.user
+        AssessmentResult.objects.create(
+            user=user,
+            workload_score=features[0],
+            stress_score=features[1],
+            sleep_score=features[2],
+            balance_score=features[3],
+            satisfaction_score=features[4],
+            support_score=features[5],
+            burnout_index=prediction_result['burnout_index'],
+            risk_level=prediction_result['risk_level']
+        )
         return Response(prediction_result, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def create_profile_view(request):
     try:
         data = request.data
-        profile, created = UserProfile.objects.update_or_create(
-            email=data.get('email'),
-            defaults={
-                'name': data.get('name'),
-                'role': data.get('role', 'teacher'),
-                'age': data.get('age', 30),
-                'experience': data.get('experience', 5),
-            }
-        )
-        return Response({"message": "Profile saved", "email": profile.email}, status=status.HTTP_201_CREATED)
+        user = request.user
+        user.first_name = data.get('name', '').split(' ')[0] if ' ' in data.get('name', '') else data.get('name', '')
+        user.last_name = data.get('name', '').split(' ')[1] if ' ' in data.get('name', '') else ''
+        user.age = data.get('age', user.age)
+        user.experience = data.get('experience', user.experience)
+        user.save()
+        return Response({"message": "Profile updated"}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -81,18 +61,16 @@ def create_profile_view(request):
 # ── Chatbot Views ──────────────────────────────────────────────────────────────
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def start_chat_session(request):
     """Create or retrieve an active chat session for the user."""
     from .chatbot_engine import get_bot_response
-    email = request.data.get('email', '')
-    name = request.data.get('name', 'Professor')
-
-    if not email:
-        return Response({"error": "email is required"}, status=status.HTTP_400_BAD_REQUEST)
+    email = request.user.email
+    name = request.user.get_full_name() or request.user.username
 
     # Get most recent session or create a new one
     session, created = ChatSession.objects.get_or_create(
+        user=request.user,
         user_email=email,
         defaults={'user_name': name}
     )
@@ -118,7 +96,7 @@ def start_chat_session(request):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def send_chat_message(request):
     """Process a user message and return bot response."""
     from .chatbot_engine import get_bot_response
@@ -156,7 +134,8 @@ def send_chat_message(request):
                 pass
 
         Reminder.objects.create(
-            user_email=reminder_data['user_email'],
+            user=request.user,
+            user_email=request.user.email,
             reminder_type=reminder_data.get('reminder_type', 'custom'),
             message=reminder_data.get('message', user_message),
             scheduled_for=scheduled_dt
@@ -175,7 +154,7 @@ def send_chat_message(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def chat_history(request, session_id):
     """Fetch paginated chat history for a session."""
     try:
@@ -189,7 +168,7 @@ def chat_history(request, session_id):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def create_reminder(request):
     """Create a reminder directly."""
     try:
@@ -205,7 +184,8 @@ def create_reminder(request):
                 pass
 
         reminder = Reminder.objects.create(
-            user_email=data.get('user_email', ''),
+            user=request.user,
+            user_email=request.user.email,
             reminder_type=data.get('reminder_type', 'custom'),
             message=data.get('message', ''),
             scheduled_for=scheduled_dt,
@@ -216,18 +196,15 @@ def create_reminder(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def list_reminders(request):
-    """List active reminders for a user email."""
-    email = request.query_params.get('email', '')
-    if not email:
-        return Response({"error": "email query param required"}, status=status.HTTP_400_BAD_REQUEST)
-    reminders = Reminder.objects.filter(user_email=email, is_active=True).order_by('-created_at')
+    """List active reminders for the authenticated user."""
+    reminders = Reminder.objects.filter(user=request.user, is_active=True).order_by('-created_at')
     return Response(ReminderSerializer(reminders, many=True).data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def chat_unified(request):
     """
     Unified chat endpoint mapping to the service layer.
@@ -240,12 +217,8 @@ def chat_unified(request):
     if not user_message:
         return Response({"reply": "Please provide a message."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Resolve email and name
-    user_profile = UserProfile.objects.filter(Q(id=user_id) | Q(email=email)).first()
-    if user_profile:
-        email = user_profile.email
-    else:
-        email = email or "guest@facultymind.ai"
+    user = request.user
+    email = user.email
 
     try:
         from backend.chatbot.services.chat_service import process_chat_message
@@ -277,7 +250,7 @@ def chat_unified(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def get_user_context(request):
     """
     GET /api/chat/context/?email=...
@@ -289,11 +262,10 @@ def get_user_context(request):
     if not email:
         return Response({"error": "email query param required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Create a dummy session-like obj to satisfy the function signature
     class _FakeSession:
-        user_email = email
+        user_email = request.user.email
 
-    ctx = _build_context(email, _FakeSession())
+    ctx = _build_context(request.user.email, _FakeSession())
     # Return only safe, serializable fields
     return Response({
         "name":            ctx.get('name', 'Professor'),
@@ -308,13 +280,16 @@ def get_user_context(request):
     }, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def admin_overview_view(request):
-    """Get platform-wide burnout statistics."""
-    total_teachers = UserProfile.objects.filter(role="teacher").count()
-    total_assessments = AssessmentResult.objects.count()
-    average_score = AssessmentResult.objects.aggregate(Avg("burnout_index"))["burnout_index__avg"] or 0
-    high_risk_count = AssessmentResult.objects.filter(risk_level="High").count()
+    """Get platform-wide burnout statistics for admin's workspace."""
+    if request.user.role != 'admin' or not request.user.workspace:
+        return Response({"error": "Admin access required with active workspace"}, status=status.HTTP_403_FORBIDDEN)
+        
+    total_teachers = User.objects.filter(workspace=request.user.workspace, role="teacher").count()
+    total_assessments = AssessmentResult.objects.filter(user__workspace=request.user.workspace).count()
+    average_score = AssessmentResult.objects.filter(user__workspace=request.user.workspace).aggregate(Avg("burnout_index"))["burnout_index__avg"] or 0
+    high_risk_count = AssessmentResult.objects.filter(user__workspace=request.user.workspace, risk_level="High").count()
     
     return Response({
         "total_teachers": total_teachers,
@@ -325,10 +300,13 @@ def admin_overview_view(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def admin_department_analytics_view(request):
-    """Group burnout scores by department."""
-    analytics = AssessmentResult.objects.values("user__department__name").annotate(
+    """Group burnout scores by department within admin's workspace."""
+    if request.user.role != 'admin' or not request.user.workspace:
+        return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+
+    analytics = AssessmentResult.objects.filter(user__workspace=request.user.workspace).values("user__department__name").annotate(
         avg_score=Avg("burnout_index"),
         assessment_count=Count("id")
     ).order_by('user__department__name')
@@ -345,14 +323,17 @@ def admin_department_analytics_view(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def admin_high_risk_view(request):
-    """Return faculty whose latest burnout assessment is 'High'."""
+    """Return faculty whose latest burnout assessment is 'High' in admin's workspace."""
+    if request.user.role != 'admin' or not request.user.workspace:
+        return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+
     latest_assessments = AssessmentResult.objects.filter(
         user=OuterRef('pk')
     ).order_by('-created_at')
     
-    high_risk_faculty = UserProfile.objects.annotate(
+    high_risk_faculty = User.objects.filter(workspace=request.user.workspace).annotate(
         latest_risk=Subquery(latest_assessments.values('risk_level')[:1]),
         latest_score=Subquery(latest_assessments.values('burnout_index')[:1]),
         latest_date=Subquery(latest_assessments.values('created_at')[:1])
@@ -373,14 +354,17 @@ def admin_high_risk_view(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def admin_faculty_list_view(request):
-    """Return teachers and their latest burnout result."""
+    """Return teachers and their latest burnout result in admin's workspace."""
+    if request.user.role != 'admin' or not request.user.workspace:
+        return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+
     latest_assessments = AssessmentResult.objects.filter(
         user=OuterRef('pk')
     ).order_by('-created_at')
     
-    faculty = UserProfile.objects.filter(role="teacher").annotate(
+    faculty = User.objects.filter(workspace=request.user.workspace, role="teacher").annotate(
         latest_risk=Subquery(latest_assessments.values('risk_level')[:1]),
         latest_score=Subquery(latest_assessments.values('burnout_index')[:1]),
         latest_date=Subquery(latest_assessments.values('created_at')[:1])
@@ -401,16 +385,16 @@ def admin_faculty_list_view(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def admin_faculty_history_view(request, faculty_id):
     """Get all assessments for a specific faculty member."""
-    assessments = AssessmentResult.objects.filter(user_id=faculty_id).order_by('-created_at')
+    assessments = AssessmentResult.objects.filter(user_id=faculty_id, user__workspace=request.user.workspace).order_by('-created_at')
     serializer = AssessmentResultSerializer(assessments, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def admin_send_message_view(request):
     """Admin sends a message to a teacher and creates a notification."""
     admin_id = request.data.get('admin_id')
@@ -421,8 +405,11 @@ def admin_send_message_view(request):
         return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        admin = UserProfile.objects.get(id=admin_id, role='admin')
-        teacher = UserProfile.objects.get(id=teacher_id)
+        admin = request.user
+        if admin.role != 'admin':
+            return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+            
+        teacher = User.objects.get(id=teacher_id, workspace=admin.workspace)
         
         # Save message
         AdminMessage.objects.create(
@@ -439,19 +426,22 @@ def admin_send_message_view(request):
         )
         
         return Response({"message": "Sent successfully"}, status=status.HTTP_201_CREATED)
-    except UserProfile.DoesNotExist:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    except User.DoesNotExist:
+        return Response({"error": "User not found in your workspace"}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def admin_ai_context_view(request):
-    """Provide institutional context for Admin AI."""
-    total_teachers = UserProfile.objects.filter(role="teacher").count()
-    total_assessments = AssessmentResult.objects.count()
-    high_risk_count = AssessmentResult.objects.filter(risk_level="High").count()
+    """Provide institutional context for Admin AI in admin's workspace."""
+    if request.user.role != 'admin' or not request.user.workspace:
+        return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+
+    total_teachers = User.objects.filter(workspace=request.user.workspace, role="teacher").count()
+    total_assessments = AssessmentResult.objects.filter(user__workspace=request.user.workspace).count()
+    high_risk_count = AssessmentResult.objects.filter(user__workspace=request.user.workspace, risk_level="High").count()
     
-    dept_analytics = AssessmentResult.objects.values("user__department__name").annotate(
+    dept_analytics = AssessmentResult.objects.filter(user__workspace=request.user.workspace).values("user__department__name").annotate(
         avg_score=Avg("burnout_index"),
         count=Count("id")
     )
@@ -469,14 +459,10 @@ def admin_ai_context_view(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def list_user_notifications_view(request):
-    """List notifications for a user."""
-    email = request.query_params.get('email')
-    if not email:
-        return Response({"error": "email required"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    notifications = Notification.objects.filter(user__email=email).order_by('-created_at')[:10]
+    """List notifications for the authenticated user."""
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:10]
     result = [
         {
             "id": n.id,
@@ -490,11 +476,11 @@ def list_user_notifications_view(request):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def mark_notification_read_view(request, notification_id):
     """Mark a notification as read."""
     try:
-        notification = Notification.objects.get(id=notification_id)
+        notification = Notification.objects.get(id=notification_id, user=request.user)
         notification.is_read = True
         notification.save()
         return Response({"status": "success"}, status=status.HTTP_200_OK)
@@ -503,11 +489,9 @@ def mark_notification_read_view(request, notification_id):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def list_assessments_view(request):
-    """List previous assessments (Temporary fix: returns all without email filtering)."""
-    # email = request.query_params.get('email', '')
-    # Temporary: return all assessments latest first
-    assessments = AssessmentResult.objects.all().order_by('-created_at')
+    """List previous assessments for the authenticated user."""
+    assessments = AssessmentResult.objects.filter(user=request.user).order_by('-created_at')
     serializer = AssessmentResultSerializer(assessments, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)

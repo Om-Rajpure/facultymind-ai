@@ -1,31 +1,45 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { User, Briefcase, Building2, Calendar, Award } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+
 const ProfileSetup = () => {
-  const { user, updateProfile } = useAuth();
+  const { user, tokens, updateProfile } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    age: '',
-    department: '',
-    experience: '',
-    institution: ''
+    name: user?.first_name || user?.username || '',
+    age: user?.age || '',
+    department: user?.department || '',
+    experience: user?.experience || '',
+    institution: user?.institution || ''
   });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    updateProfile(formData);
-    if (user?.role === 'admin') {
-      navigate('/admin-dashboard');
-    } else {
-      navigate('/dashboard');
+    setLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/accounts/setup-profile/`, formData, {
+        headers: { Authorization: `Bearer ${tokens.access}` }
+      });
+      updateProfile(formData);
+      if (user?.role === 'admin') {
+        navigate(user.workspace ? '/admin-dashboard' : '/create-workspace');
+      } else {
+        navigate(user.workspace ? '/dashboard' : '/join-workspace');
+      }
+    } catch (error) {
+      console.error("Profile setup failed:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -140,8 +154,8 @@ const ProfileSetup = () => {
               </div>
 
               <div className="pt-6">
-                <button type="submit" className="w-full btn-primary justify-center py-5 text-lg">
-                  Continue to Dashboard
+                <button type="submit" disabled={loading} className="w-full btn-primary justify-center py-5 text-lg disabled:opacity-50">
+                  {loading ? 'Saving...' : 'Continue to Dashboard'}
                 </button>
               </div>
             </form>

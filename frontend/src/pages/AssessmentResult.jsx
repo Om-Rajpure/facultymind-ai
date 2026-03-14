@@ -34,6 +34,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+
 const AssessmentResult = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,13 +44,16 @@ const AssessmentResult = () => {
 
   useEffect(() => {
     const fetchResults = async () => {
-      if (!user?.email) {
+      const { tokens } = useAuth();
+      if (!tokens) {
         setLoading(false);
         return;
       }
 
       try {
-        const response = await axios.get(`http://localhost:8000/api/assessments/`);
+        const response = await axios.get(`${API_BASE_URL}/assessments/`, {
+          headers: { Authorization: `Bearer ${tokens.access}` }
+        });
         setResults(response.data);
       } catch (error) {
         console.error("Error fetching assessments:", error);

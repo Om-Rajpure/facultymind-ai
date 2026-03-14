@@ -85,7 +85,7 @@ const Navbar = () => {
                 ) : (
                   <User size={16} className="text-primary" />
                 )}
-                <span className="text-xs font-bold text-white">{user.name}</span>
+                <span className="text-xs font-bold text-white">{user.first_name || user.username}</span>
               </div>
               <button 
                 onClick={handleAuthAction}
@@ -154,7 +154,7 @@ const Navbar = () => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10">
                     <User size={20} className="text-primary" />
-                    <span className="font-bold text-white">{user.name}</span>
+                    <span className="font-bold text-white">{user.first_name || user.username}</span>
                   </div>
                   <button 
                     onClick={() => { logout(); navigate('/'); setIsMenuOpen(false); }}

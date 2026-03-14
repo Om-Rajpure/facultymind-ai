@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 class Institution(models.Model):
     name = models.CharField(max_length=255)
@@ -15,25 +16,8 @@ class Department(models.Model):
     def __str__(self):
         return f"{self.name} ({self.institution.name})"
 
-class UserProfile(models.Model):
-    ROLE_CHOICES = [
-        ('teacher', 'Teacher'),
-        ('admin', 'Admin'),
-    ]
-    name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='teacher')
-    age = models.IntegerField()
-    experience = models.IntegerField()
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
-    institution = models.ForeignKey(Institution, on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-
 class AssessmentResult(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='assessment_results', null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assessment_results', null=True, blank=True)
     workload_score = models.FloatField()
     stress_score = models.FloatField()
     sleep_score = models.FloatField()
@@ -45,10 +29,11 @@ class AssessmentResult(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.name} - {self.risk_level} ({self.created_at.strftime('%Y-%m-%d')})"
+        return f"{self.user.username if self.user else 'Guest'} - {self.risk_level} ({self.created_at.strftime('%Y-%m-%d')})"
 
 
 class ChatSession(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='chat_sessions', null=True, blank=True)
     user_email = models.EmailField()
     user_name = models.CharField(max_length=255, default='')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -83,6 +68,7 @@ class Reminder(models.Model):
         ('stress', 'Stress Check'),
         ('custom', 'Custom'),
     ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reminders', null=True, blank=True)
     user_email = models.EmailField()
     reminder_type = models.CharField(max_length=20, choices=REMINDER_TYPES, default='custom')
     message = models.TextField()
@@ -95,22 +81,22 @@ class Reminder(models.Model):
 
 
 class AdminMessage(models.Model):
-    admin = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='sent_messages')
-    teacher = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='received_messages')
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_messages')
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_messages')
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, default='sent') # sent, read
 
     def __str__(self):
-        return f"From {self.admin.name} to {self.teacher.name} at {self.timestamp}"
+        return f"From {self.admin.username} to {self.teacher.username} at {self.timestamp}"
 
 
 class Notification(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()
     type = models.CharField(max_length=50, default='info') # info, message, alert
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Notification for {self.user.name}: {self.message[:50]}"
+        return f"Notification for {self.user.username}: {self.message[:50]}"

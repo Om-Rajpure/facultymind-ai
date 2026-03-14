@@ -9,7 +9,7 @@ import axios from 'axios';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, tokens } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -22,7 +22,9 @@ const Dashboard = () => {
 
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/notifications/?email=${user.email}`);
+      const res = await axios.get(`${API_BASE_URL}/notifications/`, {
+        headers: { Authorization: `Bearer ${tokens.access}` }
+      });
       setNotifications(res.data);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -31,7 +33,9 @@ const Dashboard = () => {
 
   const markAsRead = async (id) => {
     try {
-      await axios.post(`${API_BASE_URL}/notifications/${id}/read/`);
+      await axios.post(`${API_BASE_URL}/notifications/${id}/read/`, {}, {
+        headers: { Authorization: `Bearer ${tokens.access}` }
+      });
       setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch (error) {
       console.error("Error marking as read:", error);
@@ -80,7 +84,7 @@ const Dashboard = () => {
               animate={{ opacity: 1, x: 0 }}
               className="text-4xl md:text-5xl font-extrabold text-white"
             >
-              Welcome back, <span className="text-gradient">{user?.name?.split(' ')[1] || user?.name}</span>
+              Welcome back, <span className="text-gradient">{user?.first_name || user?.username}</span>
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, x: -20 }}

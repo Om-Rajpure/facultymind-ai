@@ -4,7 +4,8 @@ import { MessageCircle, X, Send, Bot, Loader2, BellPlus, Maximize2, Minimize2 } 
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
-const API = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+const API = API_BASE_URL;
 
 // Format bot messages: bold **text**, newlines
 function formatMessage(text) {
@@ -59,6 +60,7 @@ export default function ChatWidget() {
   const [sessionId, setSessionId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [typing, setTyping] = useState(false);
+  const { tokens } = useAuth();
   const bottomRef = useRef(null);
 
   // Detect if user has assessment data (enriches responses)
@@ -80,10 +82,8 @@ export default function ChatWidget() {
   const initSession = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/chat/start/`, {
-        email: userEmail,
-        name: user.name || 'Professor',
-      });
+      const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
+      const res = await axios.post(`${API}/chat/start/`, {}, config);
       setSessionId(res.data.session_id);
       setMessages(res.data.messages || []);
     } catch {
@@ -108,13 +108,12 @@ export default function ChatWidget() {
 
     try {
       let botContent, newChips;
+      const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
 
       // Unified Gemini-powered chat API
       const res = await axios.post(`${API}/chat/`, { 
-        email: userEmail,
-        user_id: user?.id,
         message: msg 
-      });
+      }, config);
       
       botContent = res.data.reply;
       newChips = res.data.suggestions;

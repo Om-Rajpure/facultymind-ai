@@ -1,16 +1,26 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { UserCircle, ShieldCheck } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+
 const RoleSelection = () => {
-  const { login } = useAuth();
+  const { tokens, updateProfile } = useAuth();
   const navigate = useNavigate();
 
-  const handleRoleSelect = (role) => {
-    login({ role });
-    navigate('/profile-setup');
+  const handleRoleSelect = async (role) => {
+    try {
+      await axios.post(`${API_BASE_URL}/accounts/setup-profile/`, { role }, {
+        headers: { Authorization: `Bearer ${tokens.access}` }
+      });
+      updateProfile({ role });
+      navigate('/profile-setup');
+    } catch (error) {
+      console.error("Failed to set role:", error);
+    }
   };
 
   const roles = [

@@ -220,6 +220,8 @@ const assessmentQuestions = [
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+
 const Assessment = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -247,6 +249,7 @@ const Assessment = () => {
 
   const handleSubmit = async () => {
     setLoading(true);
+    const { tokens } = useAuth();
     // Generate feature scores
     const categories = [
       "Teaching Workload",
@@ -269,8 +272,6 @@ const Assessment = () => {
     });
 
     try {
-      // Input for API:
-      // { workload, stress, sleep, balance, satisfaction, support, age, experience, email }
       const payload = {
         workload: categoryScores["Teaching Workload"],
         stress: categoryScores["Mental Stress"],
@@ -279,11 +280,12 @@ const Assessment = () => {
         satisfaction: categoryScores["Job Satisfaction"],
         support: categoryScores["Institutional Support"],
         age: user?.age || 35,
-        experience: user?.experience || 10,
-        email: user?.email
+        experience: user?.experience || 10
       };
 
-      const response = await axios.post('http://localhost:8000/api/predict-burnout/', payload);
+      const response = await axios.post(`${API_BASE_URL}/predict-burnout/`, payload, {
+        headers: { Authorization: `Bearer ${tokens.access}` }
+      });
       
       // Store raw scores + prediction metadata in localStorage for results page
       const resultData = {

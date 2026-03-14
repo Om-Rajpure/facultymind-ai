@@ -5,7 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+const API = API_BASE_URL;
 
 const QUICK_CHIPS = [
   'Explain my burnout score',
@@ -52,6 +53,7 @@ export default function ChatbotPage() {
   const [chips, setChips] = useState(QUICK_CHIPS);
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState(null);
+  const { tokens } = useAuth();
   const [loading, setLoading] = useState(true);
   const [typing, setTyping] = useState(false);
   const [reminders, setReminders] = useState([]);
@@ -75,9 +77,10 @@ export default function ChatbotPage() {
   const initSession = async () => {
     setLoading(true);
     try {
+      const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
       const [sessionRes, remindersRes] = await Promise.all([
-        axios.post(`${API}/chat/start/`, { email: userEmail, name: user?.name || 'Professor' }),
-        axios.get(`${API}/reminders/list/?email=${encodeURIComponent(userEmail)}`),
+        axios.post(`${API}/chat/start/`, {}, config),
+        axios.get(`${API}/reminders/list/`, config),
       ]);
       setSessionId(sessionRes.data.session_id);
       setMessages(sessionRes.data.messages || []);
@@ -102,13 +105,14 @@ export default function ChatbotPage() {
     setTyping(true);
 
     try {
-      const res = await axios.post(`${API}/chat/message/`, { session_id: sessionId, message: msg });
+      const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
+      const res = await axios.post(`${API}/chat/message/`, { session_id: sessionId, message: msg }, config);
       const bot = res.data.bot_message;
       setMessages(prev => [...prev, { id: bot.id, role: 'bot', content: bot.content, timestamp: bot.timestamp }]);
       if (res.data.suggested_chips?.length) setChips(res.data.suggested_chips);
       if (res.data.reminder_created) {
         setReminderCount(c => c + 1);
-        const remindersRes = await axios.get(`${API}/reminders/list/?email=${encodeURIComponent(userEmail)}`);
+        const remindersRes = await axios.get(`${API}/reminders/list/`, config);
         setReminders(remindersRes.data || []);
       }
     } catch {

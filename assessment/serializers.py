@@ -1,20 +1,5 @@
 from rest_framework import serializers
-from .models import UserProfile, AssessmentResult, Institution, Department, ChatSession, ChatMessage, Reminder
-
-class InstitutionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Institution
-        fields = '__all__'
-
-class DepartmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Department
-        fields = '__all__'
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = '__all__'
+from .models import AssessmentResult, Institution, Department, ChatSession, ChatMessage, Reminder
 
 class AssessmentResultSerializer(serializers.ModelSerializer):
     class Meta:
