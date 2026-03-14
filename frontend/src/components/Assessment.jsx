@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, CheckCircle2, AlertCircle, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const assessmentQuestions = [

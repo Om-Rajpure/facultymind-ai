@@ -181,6 +181,7 @@ def create_reminder(request):
     """Create a reminder directly."""
     try:
         from datetime import datetime
+        from backend.chatbot.services.chat_service import process_chat_message
         data = request.data
         scheduled_raw = data.get('scheduled_for')
         scheduled_dt = None
@@ -216,81 +217,50 @@ def list_reminders(request):
 @permission_classes([AllowAny])
 def chat_unified(request):
     """
-    Unified Gemini-powered chat endpoint with debug logging.
-    POST /api/chat/
-    Body: { "user_id": 1, "message": "..." } OR { "email": "...", "message": "..." }
+    Unified chat endpoint mapping to the service layer.
     """
-    from .chatbot_engine import _build_context
-    from backend.chatbot.gemini_service import ask_gemini
-    
     data = request.data
+    user_message = data.get('message', '').strip()
     user_id = data.get('user_id')
     email = data.get('email', '').strip()
-    user_message = data.get('message', '').strip()
 
-    print(f"DEBUG: Received message: '{user_message}' for user_id: {user_id} or email: {email}")
-
-    if not user_id and not email:
-        return Response({"reply": "user_id or email is required"}, status=status.HTTP_400_BAD_REQUEST)
     if not user_message:
-        return Response({"reply": "message is required"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"reply": "Please provide a message."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Resolve user
+    # Resolve email and name
     user_profile = UserProfile.objects.filter(Q(id=user_id) | Q(email=email)).first()
-    
     if user_profile:
         email = user_profile.email
-        name = user_profile.name
     else:
-        name = "Professor"
         email = email or "guest@facultymind.ai"
 
-    # Get or create session
-    session, created = ChatSession.objects.get_or_create(
-        user_email=email,
-        defaults={'user_name': name}
-    )
-
-    # Save user message
-    ChatMessage.objects.create(session=session, role='user', content=user_message)
-
-    # Fetch context from database
-    ctx_data = _build_context(email, session)
-    
-    # Construct context string for Gemini
-    context_str = f"""
-Name: {name}
-Department: {ctx_data.get('department', 'Engineering')}
-Burnout Index: {ctx_data.get('burnout_index', 'Not assessed')}
-Risk Level: {ctx_data.get('risk_level', 'Unknown')}
-Stress Score: {ctx_data.get('scores', {}).get('stress_score', 'N/A')}
-Workload Score: {ctx_data.get('scores', {}).get('workload_score', 'N/A')}
-Sleep Score: {ctx_data.get('scores', {}).get('sleep_score', 'N/A')}
-"""
-
     try:
-        # Using the new ask_gemini with message and context
-        bot_text = ask_gemini(user_message, context_str)
+        from backend.chatbot.services.chat_service import process_chat_message
+        
+        # Get existing session if possible
+        session = ChatSession.objects.filter(user_email=email).order_by('-last_active').first()
+        session_id = session.id if session else None
+        
+        reply, new_session_id = process_chat_message(email, user_message, session_id)
+        
+        return Response({
+            "reply": reply,
+            "session_id": new_session_id,
+            "suggestions": [
+                "Explain my burnout score",
+                "What should I improve first?",
+                "Give me stress tips",
+                "Set a reminder"
+            ]
+        }, status=status.HTTP_200_OK)
+
     except Exception as e:
-        print(f"DEBUG: Gemini call failed with error: {str(e)}")
-        bot_text = None
-
-    if not bot_text:
-        bot_text = "Sorry, the AI assistant is temporarily unavailable."
-
-    # Suggested actions/chips
-    from .chatbot_engine import _handle_fallback
-    chips = _handle_fallback(ctx_data).get('suggested_chips', [])
-
-    # Save bot message
-    bot_msg = ChatMessage.objects.create(session=session, role='bot', content=bot_text)
-
-    return Response({
-        "reply": bot_text,
-        "suggestions": chips,
-        "session_id": session.id,
-        "timestamp": bot_msg.timestamp,
-    }, status=status.HTTP_200_OK)
+        print(f"Chat API Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return Response({
+            "reply": "The AI assistant is temporarily unavailable. Please try again."
+        }, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
