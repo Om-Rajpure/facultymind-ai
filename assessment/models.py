@@ -22,7 +22,7 @@ class UserProfile(models.Model):
     ]
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='teacher')
     age = models.IntegerField()
     experience = models.IntegerField()
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
@@ -92,3 +92,25 @@ class Reminder(models.Model):
 
     def __str__(self):
         return f"[{self.reminder_type}] {self.user_email} — {self.message[:50]}"
+
+
+class AdminMessage(models.Model):
+    admin = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='sent_messages')
+    teacher = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='received_messages')
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default='sent') # sent, read
+
+    def __str__(self):
+        return f"From {self.admin.name} to {self.teacher.name} at {self.timestamp}"
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    type = models.CharField(max_length=50, default='info') # info, message, alert
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification for {self.user.name}: {self.message[:50]}"

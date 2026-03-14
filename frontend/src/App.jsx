@@ -10,10 +10,19 @@ import AssessmentResult from './pages/AssessmentResult.jsx';
 import Assessment from './components/Assessment.jsx';
 import Chatbot from './pages/Chatbot.jsx';
 import ChatWidget from './components/ChatWidget.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import AdminAI from './pages/AdminAI.jsx';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" />;
+  return children;
+};
+
+const AdminProtectedRoute = ({ children }) => {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" />;
+  if (user.role !== 'admin') return <Navigate to="/dashboard" />;
   return children;
 };
 
@@ -76,6 +85,40 @@ function AppContent() {
               <Chatbot />
             </ProtectedRoute>
           }
+        />
+
+        {/* Admin Routes */}
+        <Route 
+          path="/admin-dashboard" 
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin-analytics" 
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin-faculty" 
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin-ai" 
+          element={
+            <AdminProtectedRoute>
+              <AdminAI />
+            </AdminProtectedRoute>
+          } 
         />
       </Routes>
       <ChatWidget />

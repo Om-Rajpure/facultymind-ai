@@ -19,11 +19,18 @@ const Navbar = () => {
   }, []);
 
   const navLinks = user 
-    ? [
-        { name: 'Dashboard', path: '/dashboard' },
-        { name: 'FacultyMind AI', path: '/chatbot' },
-        { name: 'Assessment', path: '/assessment' },
-      ]
+    ? (user.role === 'admin'
+        ? [
+            { name: 'Dashboard', path: '/admin-dashboard' },
+            { name: 'Analytics', path: '/admin-analytics' },
+            { name: 'Faculty', path: '/admin-faculty' },
+          ]
+        : [
+            { name: 'Dashboard', path: '/dashboard' },
+            { name: 'FacultyMind AI', path: '/chatbot' },
+            { name: 'Assessment', path: '/assessment' },
+          ]
+      )
     : [
         { name: 'Home', path: '/' },
         { name: 'Features', path: '/#features' },
@@ -52,16 +59,20 @@ const Navbar = () => {
 
         {/* Center: Desktop Links */}
         <div className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link 
-              key={link.name}
-              to={link.path}
-              className="text-text-muted hover:text-white font-semibold text-sm transition-all hover:scale-105 relative group"
-            >
-              {link.name}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-            </Link>
-          ))}
+          {user?.role === 'admin' ? (
+            <span className="text-white font-extrabold text-lg tracking-tight">FacultyMind <span className="text-secondary text-base">Admin</span></span>
+          ) : (
+            navLinks.map((link) => (
+              <Link 
+                key={link.name}
+                to={link.path}
+                className="text-text-muted hover:text-white font-semibold text-sm transition-all hover:scale-105 relative group"
+              >
+                {link.name}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+              </Link>
+            ))
+          )}
         </div>
 
         {/* Right: Buttons */}

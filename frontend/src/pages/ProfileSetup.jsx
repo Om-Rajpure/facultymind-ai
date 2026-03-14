@@ -22,7 +22,11 @@ const ProfileSetup = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     updateProfile(formData);
-    navigate('/dashboard');
+    if (user?.role === 'admin') {
+      navigate('/admin-dashboard');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   const inputClasses = "w-full bg-white/5 border border-white/10 rounded-xl px-12 py-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all placeholder:text-text-muted/50";

@@ -1,9 +1,9 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q, Avg, Count, OuterRef, Subquery
 from rest_framework import status
-from .models import UserProfile, AssessmentResult, ChatSession, ChatMessage, Reminder
+from .models import UserProfile, AssessmentResult, ChatSession, ChatMessage, Reminder, AdminMessage, Notification
 from .serializers import AssessmentResultSerializer, ChatMessageSerializer, ChatSessionSerializer, ReminderSerializer
 from ml_model.predict import predict_burnout
 
@@ -306,6 +306,201 @@ def get_user_context(request):
         "age":             ctx.get('age'),
         "assessment_date": ctx.get('assessment_date'),
     }, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def admin_overview_view(request):
+    """Get platform-wide burnout statistics."""
+    total_teachers = UserProfile.objects.filter(role="teacher").count()
+    total_assessments = AssessmentResult.objects.count()
+    average_score = AssessmentResult.objects.aggregate(Avg("burnout_index"))["burnout_index__avg"] or 0
+    high_risk_count = AssessmentResult.objects.filter(risk_level="High").count()
+    
+    return Response({
+        "total_teachers": total_teachers,
+        "total_assessments": total_assessments,
+        "average_burnout_score": round(average_score, 1),
+        "high_risk_count": high_risk_count
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def admin_department_analytics_view(request):
+    """Group burnout scores by department."""
+    analytics = AssessmentResult.objects.values("user__department__name").annotate(
+        avg_score=Avg("burnout_index"),
+        assessment_count=Count("id")
+    ).order_by('user__department__name')
+    
+    result = [
+        {
+            "department": entry["user__department__name"] or "Unknown",
+            "avg_score": round(entry["avg_score"], 1) if entry["avg_score"] else 0,
+            "assessment_count": entry["assessment_count"]
+        } for entry in analytics
+    ]
+    
+    return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def admin_high_risk_view(request):
+    """Return faculty whose latest burnout assessment is 'High'."""
+    latest_assessments = AssessmentResult.objects.filter(
+        user=OuterRef('pk')
+    ).order_by('-created_at')
+    
+    high_risk_faculty = UserProfile.objects.annotate(
+        latest_risk=Subquery(latest_assessments.values('risk_level')[:1]),
+        latest_score=Subquery(latest_assessments.values('burnout_index')[:1]),
+        latest_date=Subquery(latest_assessments.values('created_at')[:1])
+    ).filter(latest_risk="High")
+    
+    result = [
+        {
+            "id": user.id,
+            "name": user.name,
+            "department": user.department.name if user.department else "N/A",
+            "burnout_score": round(user.latest_score, 1) if user.latest_score else 0,
+            "risk_level": user.latest_risk,
+            "assessment_date": user.latest_date.strftime('%Y-%m-%d') if user.latest_date else "N/A"
+        } for user in high_risk_faculty
+    ]
+    
+    return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def admin_faculty_list_view(request):
+    """Return teachers and their latest burnout result."""
+    latest_assessments = AssessmentResult.objects.filter(
+        user=OuterRef('pk')
+    ).order_by('-created_at')
+    
+    faculty = UserProfile.objects.filter(role="teacher").annotate(
+        latest_risk=Subquery(latest_assessments.values('risk_level')[:1]),
+        latest_score=Subquery(latest_assessments.values('burnout_index')[:1]),
+        latest_date=Subquery(latest_assessments.values('created_at')[:1])
+    )
+    
+    result = [
+        {
+            "id": user.id,
+            "name": user.name,
+            "department": user.department.name if user.department else "N/A",
+            "latest_burnout_score": round(user.latest_score, 1) if user.latest_score else 0,
+            "risk_level": user.latest_risk or "N/A",
+            "last_assessment_date": user.latest_date.strftime('%Y-%m-%d') if user.latest_date else "N/A"
+        } for user in faculty
+    ]
+    
+    return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def admin_faculty_history_view(request, faculty_id):
+    """Get all assessments for a specific faculty member."""
+    assessments = AssessmentResult.objects.filter(user_id=faculty_id).order_by('-created_at')
+    serializer = AssessmentResultSerializer(assessments, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def admin_send_message_view(request):
+    """Admin sends a message to a teacher and creates a notification."""
+    admin_id = request.data.get('admin_id')
+    teacher_id = request.data.get('teacher_id')
+    message_text = request.data.get('message')
+
+    if not all([admin_id, teacher_id, message_text]):
+        return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        admin = UserProfile.objects.get(id=admin_id, role='admin')
+        teacher = UserProfile.objects.get(id=teacher_id)
+        
+        # Save message
+        AdminMessage.objects.create(
+            admin=admin,
+            teacher=teacher,
+            message=message_text
+        )
+        
+        # Create notification for teacher
+        Notification.objects.create(
+            user=teacher,
+            message=f"Message from Admin: {message_text[:50]}...",
+            type='message'
+        )
+        
+        return Response({"message": "Sent successfully"}, status=status.HTTP_201_CREATED)
+    except UserProfile.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def admin_ai_context_view(request):
+    """Provide institutional context for Admin AI."""
+    total_teachers = UserProfile.objects.filter(role="teacher").count()
+    total_assessments = AssessmentResult.objects.count()
+    high_risk_count = AssessmentResult.objects.filter(risk_level="High").count()
+    
+    dept_analytics = AssessmentResult.objects.values("user__department__name").annotate(
+        avg_score=Avg("burnout_index"),
+        count=Count("id")
+    )
+    
+    context_str = f"System Overview:\n"
+    context_str += f"- Total Teachers: {total_teachers}\n"
+    context_str += f"- Total Assessments: {total_assessments}\n"
+    context_str += f"- High Risk Teachers: {high_risk_count}\n\n"
+    context_str += "Department Breakdown:\n"
+    for dept in dept_analytics:
+        dept_name = dept['user__department__name'] or "General"
+        context_str += f"- {dept_name}: Avg Burnout {round(dept['avg_score'] or 0, 1)}% ({dept['count']} assessments)\n"
+    
+    return Response({"context": context_str}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_user_notifications_view(request):
+    """List notifications for a user."""
+    email = request.query_params.get('email')
+    if not email:
+        return Response({"error": "email required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    notifications = Notification.objects.filter(user__email=email).order_by('-created_at')[:10]
+    result = [
+        {
+            "id": n.id,
+            "message": n.message,
+            "type": n.type,
+            "is_read": n.is_read,
+            "created_at": n.created_at.strftime('%Y-%m-%d %H:%M')
+        } for n in notifications
+    ]
+    return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def mark_notification_read_view(request, notification_id):
+    """Mark a notification as read."""
+    try:
+        notification = Notification.objects.get(id=notification_id)
+        notification.is_read = True
+        notification.save()
+        return Response({"status": "success"}, status=status.HTTP_200_OK)
+    except Notification.DoesNotExist:
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
