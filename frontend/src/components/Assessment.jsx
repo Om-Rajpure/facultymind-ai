@@ -350,8 +350,8 @@ const Assessment = () => {
             exit={{ opacity: 0, x: -20 }}
             className="w-full max-w-2xl"
           >
-            <div className="glass-card p-10 md:p-12 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-6 opacity-10">
+            <div className="glass-card p-6 sm:p-10 md:p-12 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-6 opacity-10 hidden sm:block">
                 <AlertCircle size={80} className="text-primary" />
               </div>
               

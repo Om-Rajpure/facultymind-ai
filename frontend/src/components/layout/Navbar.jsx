@@ -48,17 +48,17 @@ const Navbar = () => {
 
   return (
     <nav className={`fixed top-0 left-0 w-full z-50 glass-navbar transition-all duration-300 ${isScrolled ? 'backdrop-blur-2xl bg-bg-dark/80' : 'bg-transparent'}`}>
-      <div className="container-1200 h-full flex items-center justify-between">
+      <div className="container-1200 h-full flex items-center justify-between px-6 sm:px-8 lg:px-12">
         {/* Left: Logo */}
         <Link to="/" className="flex items-center gap-2 group shrink-0">
           <div className="bg-primary/20 p-2 rounded-xl group-hover:rotate-12 transition-transform border border-primary/20">
             <Brain className="text-primary w-6 h-6" />
           </div>
-          <span className="font-extrabold text-2xl tracking-tight text-white">Faculty<span className="text-primary">Mind</span></span>
+          <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-white">Faculty<span className="text-primary">Mind</span></span>
         </Link>
 
         {/* Center: Desktop Links */}
-        <div className="hidden lg:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-6 xl:gap-8">
           {user?.role === 'admin' ? (
             <span className="text-white font-extrabold text-lg tracking-tight">FacultyMind <span className="text-secondary text-base">Admin</span></span>
           ) : (
@@ -76,10 +76,10 @@ const Navbar = () => {
         </div>
 
         {/* Right: Buttons */}
-        <div className="hidden lg:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-4 xl:gap-6">
           {user ? (
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+              <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
                 {user.profilePicture ? (
                   <img src={user.profilePicture} alt={user.name} className="w-6 h-6 rounded-full" />
                 ) : (
@@ -113,57 +113,71 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Toggle */}
-        <button 
-          className="lg:hidden p-2 text-white bg-white/5 rounded-xl border border-white/10"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex lg:hidden items-center gap-4">
+          {user && (
+             <div className="p-2 bg-white/5 rounded-full border border-white/10">
+                <User size={18} className="text-primary" />
+             </div>
+          )}
+          <button 
+            className="p-2 text-white bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            className="lg:hidden fixed inset-0 bg-bg-dark/98 backdrop-blur-2xl z-40 p-8 pt-24"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="lg:hidden absolute top-[var(--nav-height)] left-0 w-full bg-bg-dark/95 backdrop-blur-3xl z-40 p-6 border-b border-white/10"
           >
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-6">
               {navLinks.map((link) => (
                 <Link 
                   key={link.name}
                   to={link.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-4xl font-bold text-white hover:text-primary transition-colors"
+                  className="text-xl font-bold text-white hover:text-primary transition-colors flex items-center justify-between"
                 >
                   {link.name}
+                  <ArrowRight size={18} className="text-primary/50" />
                 </Link>
               ))}
               <div className="h-px bg-white/10 w-full" />
               {user ? (
-                <button 
-                  onClick={() => { logout(); navigate('/'); setIsMenuOpen(false); }}
-                  className="w-full text-left font-bold text-2xl text-text-muted"
-                >
-                  Logout
-                </button>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10">
+                    <User size={20} className="text-primary" />
+                    <span className="font-bold text-white">{user.name}</span>
+                  </div>
+                  <button 
+                    onClick={() => { logout(); navigate('/'); setIsMenuOpen(false); }}
+                    className="w-full text-center font-bold text-lg text-red-400 bg-red-400/10 py-3 rounded-2xl border border-red-400/20"
+                  >
+                    Logout
+                  </button>
+                </div>
               ) : (
-                <>
+                <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => { navigate('/login'); setIsMenuOpen(false); }}
-                    className="w-full text-left font-bold text-2xl text-text-muted"
+                    className="btn-secondary justify-center text-sm"
                   >
                     Login
                   </button>
                   <button 
                     onClick={() => { navigate('/login'); setIsMenuOpen(false); }}
-                    className="btn-primary w-full justify-center text-xl py-4"
+                    className="btn-primary justify-center text-sm"
                   >
                     Get Started
                   </button>
-                </>
+                </div>
               )}
             </div>
           </motion.div>

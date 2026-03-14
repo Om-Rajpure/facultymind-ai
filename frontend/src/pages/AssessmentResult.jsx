@@ -129,7 +129,7 @@ const AssessmentResult = () => {
       <div className="container-1200 space-y-12">
         
         {/* Header Area */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
           <div className="space-y-2">
             <motion.span 
               initial={{ opacity: 0, y: 10 }}

@@ -7,7 +7,6 @@ import MLSection from '../components/MLSection.jsx';
 import Roles from '../components/Roles.jsx';
 import VisualizationPreview from '../components/VisualizationPreview.jsx';
 import CTA from '../components/CTA.jsx';
-import Footer from '../components/layout/Footer.jsx';
 
 const LandingPage = ({ onStartAssessment }) => {
   return (
@@ -21,7 +20,6 @@ const LandingPage = ({ onStartAssessment }) => {
       <Roles />
       <VisualizationPreview />
       <CTA onStart={onStartAssessment} />
-      <Footer />
     </div>
   );
 };

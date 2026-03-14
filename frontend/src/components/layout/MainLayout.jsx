@@ -4,7 +4,7 @@ import Footer from './Footer.jsx';
 
 const MainLayout = ({ children, setView }) => {
   return (
-    <div className="min-h-screen relative overflow-x-hidden text-slate-50">
+    <div className="min-h-screen relative overflow-x-hidden text-slate-50 w-full">
       <div className="gradient-bg"></div>
       <div className="particles-overlay"></div>
       

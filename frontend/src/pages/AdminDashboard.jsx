@@ -163,7 +163,7 @@ const AdminDashboard = () => {
             <motion.h1 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-4xl md:text-5xl font-extrabold text-white"
+              className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white"
             >
               Institutional <span className="text-gradient">Insights</span>
             </motion.h1>
@@ -180,9 +180,9 @@ const AdminDashboard = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => window.location.href='/admin-ai'}
-            className="flex items-center gap-2 px-6 py-3 bg-primary/10 border border-primary/30 rounded-2xl text-primary font-bold hover:bg-primary/20 transition-all"
+            className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-primary/10 border border-primary/30 rounded-2xl text-primary font-bold hover:bg-primary/20 transition-all text-xs sm:text-base"
           >
-            <MessageSquare size={20} /> Ask AI Assistant
+            <MessageSquare size={18} /> <span className="hidden sm:inline">Ask AI Assistant</span><span className="sm:hidden">AI</span>
           </motion.button>
         </div>
 
@@ -422,7 +422,7 @@ const AdminDashboard = () => {
                   <X size={24} />
                 </button>
               </div>
-              <div className="p-8 overflow-y-auto">
+              <div className="p-8 overflow-y-auto overflow-x-hidden">
                 <div className="grid gap-6">
                   {facultyHistory.map((item, i) => (
                     <div key={i} className="glass-card p-6 border border-white/5 hover:border-primary/30 transition-all flex items-center justify-between">

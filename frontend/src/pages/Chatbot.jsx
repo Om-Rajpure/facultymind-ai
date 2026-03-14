@@ -228,8 +228,7 @@ export default function ChatbotPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="lg:col-span-8 glass-card flex flex-col"
-            style={{ height: '680px' }}
+            className="lg:col-span-8 glass-card flex flex-col h-[600px] md:h-[680px]"
           >
             {/* Chat Header */}
             <div className="px-6 py-4 border-b border-white/5 flex items-center gap-3">
@@ -271,10 +270,10 @@ export default function ChatbotPage() {
                       {firstName[0]}
                     </div>
                   )}
-                  <div className={`max-w-[75%] px-5 py-3.5 rounded-2xl text-sm leading-relaxed ${
+                  <div className={`max-w-[85%] sm:max-w-[75%] px-5 py-3.5 rounded-2xl text-sm leading-relaxed break-words ${
                     msg.role === 'user'
                       ? 'bg-gradient-to-br from-primary to-secondary text-white rounded-br-sm'
-                      : 'bg-white/5 border border-white/8 text-slate-300 rounded-bl-sm'
+                      : 'bg-white/5 border border-white/8 text-slate-300 rounded-bl-sm shadow-inner'
                   }`}>
                     {msg.role === 'bot' ? formatMessage(msg.content) : msg.content}
                     <p className="text-[10px] mt-2 opacity-40">{formatTime(msg.timestamp)}</p>

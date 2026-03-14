@@ -36,23 +36,23 @@ const Hero = ({ onStart }) => {
               <Sparkles size={16} /> AI-Powered Early Detection
             </div>
 
-            <h1 className="text-5xl lg:text-7xl font-extrabold leading-[1.1]">
-              AI-Powered Early <br /> Detection for <br />
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.1]">
+              AI-Powered Early <br className="hidden sm:block" /> Detection for <br className="hidden sm:block" />
               <span className="text-gradient">Engineering Faculty Burnout</span>
             </h1>
 
-            <p className="text-text-muted text-lg lg:text-xl max-w-xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-text-muted text-base sm:text-lg lg:text-xl max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
               Our machine learning platform analyzes academic workload, stress levels, and work-life balance to detect burnout risks early and provide actionable insights.
             </p>
 
-            <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
               <button 
                 onClick={onStart}
-                className="btn-primary hover-glow"
+                className="btn-primary hover-glow w-full sm:w-auto"
               >
                 Start Your Assessment <ArrowRight size={20} />
               </button>
-              <button className="btn-secondary">
+              <button className="btn-secondary w-full sm:w-auto">
                 Learn More
               </button>
             </div>

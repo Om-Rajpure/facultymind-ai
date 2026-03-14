@@ -29,7 +29,9 @@ body {
   background-attachment: fixed;
   color: var(--text-main);
   overflow-x: hidden;
+  width: 100%;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
 .gradient-bg {
@@ -172,9 +174,28 @@ body {
 
 /* Structure Utilities */
 .container-1200 {
-  max-width: 1200px;
+  max-width: 80rem; /* max-w-7xl */
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-1200 {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-1200 {
+    padding: 0 4rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container-1200 {
+    padding: 0 6rem;
+    max-width: 95rem; /* Wider on ultrawide to feel less narrow */
+  }
 }
 
 .hero-padding {
