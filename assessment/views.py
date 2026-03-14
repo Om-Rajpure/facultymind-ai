@@ -41,6 +41,19 @@ def predict_burnout_view(request):
                 burnout_index=prediction_result['burnout_index'],
                 risk_level=prediction_result['risk_level']
             )
+        else:
+            # Temporary fix: save result without user if authentication is not implemented
+            AssessmentResult.objects.create(
+                user=None,
+                workload_score=features[0],
+                stress_score=features[1],
+                sleep_score=features[2],
+                balance_score=features[3],
+                satisfaction_score=features[4],
+                support_score=features[5],
+                burnout_index=prediction_result['burnout_index'],
+                risk_level=prediction_result['risk_level']
+            )
         return Response(prediction_result, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -293,3 +306,13 @@ def get_user_context(request):
         "age":             ctx.get('age'),
         "assessment_date": ctx.get('assessment_date'),
     }, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_assessments_view(request):
+    """List previous assessments (Temporary fix: returns all without email filtering)."""
+    # email = request.query_params.get('email', '')
+    # Temporary: return all assessments latest first
+    assessments = AssessmentResult.objects.all().order_by('-created_at')
+    serializer = AssessmentResultSerializer(assessments, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)

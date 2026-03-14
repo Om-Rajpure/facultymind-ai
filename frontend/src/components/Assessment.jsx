@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, CheckCircle2, AlertCircle, RefreshCcw } from 'lucide-react';
+import { ChevronRight, ChevronLeft, CheckCircle2, AlertCircle, RefreshCcw, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const assessmentQuestions = [
@@ -312,7 +312,16 @@ const Assessment = () => {
 
   return (
     <div className="min-h-screen py-32 flex flex-col items-center">
-      <div className="container-1200 w-full flex flex-col items-center">
+      <div className="container-1200 w-full flex flex-col items-center relative">
+        {/* Exit Button */}
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="absolute top-0 right-0 md:right-8 p-2 text-text-muted hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all border border-white/10 z-20 group"
+          title="Exit Assessment"
+        >
+          <X size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+        </button>
+
         
         {/* Progress Header */}
         <div className="w-full max-w-2xl mb-12 space-y-4">

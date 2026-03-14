@@ -21,6 +21,7 @@ const Navbar = () => {
   const navLinks = user 
     ? [
         { name: 'Dashboard', path: '/dashboard' },
+        { name: 'FacultyMind AI', path: '/chatbot' },
         { name: 'Assessment', path: '/assessment' },
       ]
     : [

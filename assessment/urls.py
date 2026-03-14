@@ -3,7 +3,7 @@ from .views import (
     predict_burnout_view, create_profile_view,
     start_chat_session, send_chat_message, chat_history,
     create_reminder, list_reminders,
-    chat_unified, get_user_context,
+    chat_unified, get_user_context, list_assessments_view,
 )
 
 urlpatterns = [
@@ -19,4 +19,6 @@ urlpatterns = [
     # Reminder endpoints
     path('reminders/create/', create_reminder, name='reminder-create'),
     path('reminders/list/', list_reminders, name='reminder-list'),
+    # Assessment list endpoint
+    path('assessments/', list_assessments_view, name='list-assessments'),
 ]

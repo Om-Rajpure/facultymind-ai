@@ -33,7 +33,7 @@ class UserProfile(models.Model):
         return self.name
 
 class AssessmentResult(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='assessment_results')
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='assessment_results', null=True, blank=True)
     workload_score = models.FloatField()
     stress_score = models.FloatField()
     sleep_score = models.FloatField()
