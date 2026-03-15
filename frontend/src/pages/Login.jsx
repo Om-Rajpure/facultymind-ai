@@ -10,13 +10,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [testEmail, setTestEmail] = React.useState('');
 
   const handleAuth = async (provider) => {
     try {
       // In a real app, this would be the result of a Google OAuth flow
       const mockGoogleData = {
-        email: "professor.doe@university.edu",
-        name: "Professor John Doe",
+        email: testEmail || "professor.doe@university.edu",
+        name: testEmail ? testEmail.split('@')[0] : "Professor John Doe",
       };
 
       const response = await axios.post(`${API_BASE_URL}/accounts/google/login/`, mockGoogleData);
@@ -25,7 +26,9 @@ const Login = () => {
       login(user, { access, refresh });
       
       // Redirect based on role and workspace status
-      if (user.role === 'admin' && !user.workspace) {
+      if (!user.role) {
+        navigate('/select-role');
+      } else if (user.role === 'admin' && !user.workspace) {
         navigate('/create-workspace');
       } else if (user.role === 'teacher' && !user.workspace) {
         navigate('/join-workspace');
@@ -80,6 +83,14 @@ const Login = () => {
               </div>
 
               <div className="space-y-4 relative">
+                <input 
+                  type="email" 
+                  placeholder="Test Email (admin1@gmail.com, etc.)"
+                  className="w-full bg-bg-dark border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-1 focus:ring-primary/50 text-sm"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                />
+
                 <button 
                   onClick={() => handleAuth('Google')}
                   className="w-full btn-primary justify-center py-4 bg-white text-bg-dark hover:bg-slate-100 hover-glow"

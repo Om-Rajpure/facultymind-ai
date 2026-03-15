@@ -1,4 +1,5 @@
-from assessment.models import UserProfile, AssessmentResult
+from accounts.models import User
+from assessment.models import AssessmentResult
 
 def build_user_context(email):
     """
@@ -6,8 +7,8 @@ def build_user_context(email):
     """
     context = ""
     try:
-        user = UserProfile.objects.get(email=email)
-        context += f"Name: {user.name}\n"
+        user = User.objects.get(email=email)
+        context += f"Name: {user.get_full_name() or user.username}\n"
         context += f"Department: {user.department.name if user.department else 'N/A'}\n"
         context += f"Experience: {user.experience} years\n\n"
         
@@ -25,7 +26,7 @@ def build_user_context(email):
         else:
             context += "Burnout Assessment: No data found.\n"
             
-    except UserProfile.DoesNotExist:
+    except User.DoesNotExist:
         context = "User Context: Profile not found.\n"
     except Exception as e:
         context = f"User Context: Error building context ({str(e)})\n"

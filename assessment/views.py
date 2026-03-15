@@ -342,7 +342,7 @@ def admin_high_risk_view(request):
     result = [
         {
             "id": user.id,
-            "name": user.name,
+            "name": user.get_full_name() or user.username,
             "department": user.department.name if user.department else "N/A",
             "burnout_score": round(user.latest_score, 1) if user.latest_score else 0,
             "risk_level": user.latest_risk,
@@ -373,7 +373,7 @@ def admin_faculty_list_view(request):
     result = [
         {
             "id": user.id,
-            "name": user.name,
+            "name": user.get_full_name() or user.username,
             "department": user.department.name if user.department else "N/A",
             "latest_burnout_score": round(user.latest_score, 1) if user.latest_score else 0,
             "risk_level": user.latest_risk or "N/A",

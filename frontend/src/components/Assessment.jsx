@@ -226,7 +226,7 @@ const Assessment = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, tokens } = useAuth();
   const navigate = useNavigate();
 
   const handleOptionSelect = (value) => {
@@ -249,7 +249,6 @@ const Assessment = () => {
 
   const handleSubmit = async () => {
     setLoading(true);
-    const { tokens } = useAuth();
     // Generate feature scores
     const categories = [
       "Teaching Workload",

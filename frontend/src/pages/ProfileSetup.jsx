@@ -30,11 +30,12 @@ const ProfileSetup = () => {
       await axios.post(`${API_BASE_URL}/accounts/setup-profile/`, formData, {
         headers: { Authorization: `Bearer ${tokens.access}` }
       });
+      const updatedUser = { ...user, ...formData };
       updateProfile(formData);
-      if (user?.role === 'admin') {
-        navigate(user.workspace ? '/admin-dashboard' : '/create-workspace');
+      if (updatedUser.role === 'admin') {
+        navigate(updatedUser.workspace ? '/admin-dashboard' : '/create-workspace');
       } else {
-        navigate(user.workspace ? '/dashboard' : '/join-workspace');
+        navigate(updatedUser.workspace ? '/dashboard' : '/join-workspace');
       }
     } catch (error) {
       console.error("Profile setup failed:", error);
