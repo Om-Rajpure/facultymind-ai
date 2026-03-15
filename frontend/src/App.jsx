@@ -1,8 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useUser } from "@clerk/react";
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import MainLayout from './components/layout/MainLayout.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import Login from './pages/Login.jsx';
+import Signup from './pages/Signup.jsx';
 import RoleSelection from './pages/RoleSelection.jsx';
 import ProfileSetup from './pages/ProfileSetup.jsx';
 import Dashboard from './pages/Dashboard.jsx';
@@ -16,12 +18,33 @@ import CreateWorkspace from './pages/CreateWorkspace.jsx';
 import JoinWorkspace from './pages/JoinWorkspace.jsx';
 
 const ProtectedRoute = ({ children }) => {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" />;
+  const { user, loading } = useAuth();
+  const { isLoaded: isClerkLoaded, isSignedIn } = useUser();
+
+  if (!isClerkLoaded || (isSignedIn && loading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) return <Navigate to="/login" />;
   
-  // If user has no workspace, redirect to setup/join (except if they are on those pages)
-  const isWorkspaceSetup = window.location.pathname === '/create-workspace' || window.location.pathname === '/join-workspace';
-  if (!user.workspace && !isWorkspaceSetup) {
+  // Wait for backend user to be synced
+  if (!user) return null; 
+
+  // Role and Workspace Redirection Logic
+  const pathname = window.location.pathname;
+  
+  // 1. If no role, must go to select-role
+  if (!user.role && pathname !== '/select-role') {
+    return <Navigate to="/select-role" />;
+  }
+
+  // 2. If no workspace, must go to setup (unless already on a setup page)
+  const isWorkspaceSetup = pathname === '/create-workspace' || pathname === '/join-workspace' || pathname === '/select-role';
+  if (user.role && !user.workspace && !isWorkspaceSetup) {
     return user.role === 'admin' ? <Navigate to="/create-workspace" /> : <Navigate to="/join-workspace" />;
   }
   
@@ -29,8 +52,14 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const AdminProtectedRoute = ({ children }) => {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" />;
+  const { user, loading } = useAuth();
+  const { isLoaded: isClerkLoaded, isSignedIn } = useUser();
+
+  if (!isClerkLoaded || (isSignedIn && loading)) return null; 
+
+  if (!isSignedIn) return <Navigate to="/login" />;
+  if (!user) return null;
+  
   if (user.role !== 'admin') return <Navigate to="/dashboard" />;
   
   if (!user.workspace && window.location.pathname !== '/create-workspace') {
@@ -46,6 +75,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         
         {/* Workspace Setup */}
         <Route 

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Menu, X, ArrowRight, LayoutDashboard, ClipboardList, User } from 'lucide-react';
+import { Brain, Menu, X, ArrowRight, User } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { UserButton, SignInButton, SignUpButton } from "@clerk/react";
 import { useAuth } from '../../context/AuthContext.jsx';
+import Show from '../auth/Show.jsx';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,15 +38,6 @@ const Navbar = () => {
         { name: 'Features', path: '/#features' },
         { name: 'How It Works', path: '/#how-it-works' },
       ];
-
-  const handleAuthAction = () => {
-    if (user) {
-      logout();
-      navigate('/');
-    } else {
-      navigate('/login');
-    }
-  };
 
   return (
     <nav className={`fixed top-0 left-0 w-full z-50 glass-navbar transition-all duration-300 ${isScrolled ? 'backdrop-blur-2xl bg-bg-dark/80' : 'bg-transparent'}`}>
@@ -77,48 +70,37 @@ const Navbar = () => {
 
         {/* Right: Buttons */}
         <div className="hidden lg:flex items-center gap-4 xl:gap-6">
-          {user ? (
+          <Show when="signed-in">
             <div className="flex items-center gap-4">
               <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-                {user.profilePicture ? (
-                  <img src={user.profilePicture} alt={user.name} className="w-6 h-6 rounded-full" />
-                ) : (
-                  <User size={16} className="text-primary" />
-                )}
-                <span className="text-xs font-bold text-white">{user.first_name || user.username}</span>
+                <span className="text-xs font-bold text-white">{user?.first_name || user?.username || "Faculty User"}</span>
               </div>
-              <button 
-                onClick={handleAuthAction}
-                className="text-text-muted hover:text-white font-semibold text-sm transition-colors border-none bg-transparent cursor-pointer"
-              >
-                Logout
-              </button>
+              <UserButton afterSignOutUrl="/" />
             </div>
-          ) : (
-            <>
-              <button 
-                onClick={() => navigate('/login')}
-                className="text-text-muted hover:text-white font-semibold text-sm transition-colors border-none bg-transparent cursor-pointer"
-              >
-                Login
-              </button>
-              <button 
-                onClick={() => navigate('/login')} 
-                className="btn-primary"
-              >
-                Get Started
-              </button>
-            </>
-          )}
+          </Show>
+          <Show when="signed-out">
+            <div className="flex items-center gap-4">
+              <SignInButton mode="modal">
+                <button className="text-text-muted hover:text-white font-semibold text-sm transition-colors border-none bg-transparent cursor-pointer">
+                  Login
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="btn-primary">
+                  Get Started
+                </button>
+              </SignUpButton>
+            </div>
+          </Show>
         </div>
 
         {/* Mobile Toggle */}
         <div className="flex lg:hidden items-center gap-4">
-          {user && (
-             <div className="p-2 bg-white/5 rounded-full border border-white/10">
-                <User size={18} className="text-primary" />
+          <Show when="signed-in">
+             <div className="flex items-center gap-2">
+                <UserButton afterSignOutUrl="/" />
              </div>
-          )}
+          </Show>
           <button 
             className="p-2 text-white bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -150,35 +132,29 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="h-px bg-white/10 w-full" />
-              {user ? (
+              <Show when="signed-in">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10">
                     <User size={20} className="text-primary" />
-                    <span className="font-bold text-white">{user.first_name || user.username}</span>
+                    <span className="font-bold text-white">{user?.first_name || user?.username}</span>
                   </div>
-                  <button 
-                    onClick={() => { logout(); navigate('/'); setIsMenuOpen(false); }}
-                    className="w-full text-center font-bold text-lg text-red-400 bg-red-400/10 py-3 rounded-2xl border border-red-400/20"
-                  >
-                    Logout
-                  </button>
+                  <UserButton afterSignOutUrl="/" showName />
                 </div>
-              ) : (
+              </Show>
+              <Show when="signed-out">
                 <div className="grid grid-cols-2 gap-4">
-                  <button 
-                    onClick={() => { navigate('/login'); setIsMenuOpen(false); }}
-                    className="btn-secondary justify-center text-sm"
-                  >
-                    Login
-                  </button>
-                  <button 
-                    onClick={() => { navigate('/login'); setIsMenuOpen(false); }}
-                    className="btn-primary justify-center text-sm"
-                  >
-                    Get Started
-                  </button>
+                  <SignInButton mode="modal">
+                    <button className="btn-secondary justify-center text-sm">
+                      Login
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button className="btn-primary justify-center text-sm">
+                      Get Started
+                    </button>
+                  </SignUpButton>
                 </div>
-              )}
+              </Show>
             </div>
           </motion.div>
         )}

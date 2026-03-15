@@ -1,49 +1,57 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useUser, useAuth as useClerkAuth } from "@clerk/react";
+import axios from 'axios';
 
 const AuthContext = createContext();
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('facultymind_user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-  const [tokens, setTokens] = useState(() => {
-    const access = localStorage.getItem('facultymind_access');
-    const refresh = localStorage.getItem('facultymind_refresh');
-    return access ? { access, refresh } : null;
-  });
-  const [loading, setLoading] = useState(false);
+  const { isLoaded: isClerkLoaded, user: clerkUser, isSignedIn } = useUser();
+  const { getToken } = useClerkAuth();
+  
+  const [user, setUser] = useState(null);
+  const [tokens, setTokens] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (userData, authTokens) => {
-    setUser(userData);
-    setTokens(authTokens);
-    localStorage.setItem('facultymind_user', JSON.stringify(userData));
-    localStorage.setItem('facultymind_access', authTokens.access);
-    localStorage.setItem('facultymind_refresh', authTokens.refresh);
-  };
+  // Sync with backend when Clerk user is loaded and signed in
+  useEffect(() => {
+    const syncWithBackend = async () => {
+      if (isClerkLoaded && isSignedIn && clerkUser) {
+        try {
+          setLoading(true);
+          const response = await axios.post(`${API_BASE_URL}/accounts/sync-user/`, {
+            clerk_id: clerkUser.id,
+            email: clerkUser.primaryEmailAddress?.emailAddress,
+            name: clerkUser.fullName || clerkUser.username || '',
+          });
 
-  const logout = () => {
-    setUser(null);
-    setTokens(null);
-    localStorage.removeItem('facultymind_user');
-    localStorage.removeItem('facultymind_access');
-    localStorage.removeItem('facultymind_refresh');
-  };
+          const { user: backendUser, access, refresh } = response.data;
+          setUser(backendUser);
+          setTokens({ access, refresh });
+          
+          // Store tokens in localStorage for axios interceptors if needed
+          localStorage.setItem('facultymind_access', access);
+          localStorage.setItem('facultymind_refresh', refresh);
+        } catch (error) {
+          console.error('Backend sync failed:', error);
+        } finally {
+          setLoading(false);
+        }
+      } else if (isClerkLoaded && !isSignedIn) {
+        setUser(null);
+        setTokens(null);
+        setLoading(false);
+        localStorage.removeItem('facultymind_access');
+        localStorage.removeItem('facultymind_refresh');
+      }
+    };
 
-  const updateProfile = (profileData) => {
-    const updatedUser = { ...user, ...profileData };
-    setUser(updatedUser);
-    localStorage.setItem('facultymind_user', JSON.stringify(updatedUser));
-  };
-
-  const setWorkspace = (workspaceData) => {
-    const updatedUser = { ...user, workspace: workspaceData.id, workspace_name: workspaceData.name };
-    setUser(updatedUser);
-    localStorage.setItem('facultymind_user', JSON.stringify(updatedUser));
-  };
+    syncWithBackend();
+  }, [isClerkLoaded, isSignedIn, clerkUser]);
 
   return (
-    <AuthContext.Provider value={{ user, tokens, login, logout, updateProfile, setWorkspace, loading, setLoading }}>
+    <AuthContext.Provider value={{ user, tokens, loading, setUser }}>
       {children}
     </AuthContext.Provider>
   );

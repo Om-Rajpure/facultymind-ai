@@ -34,6 +34,37 @@ class GoogleLoginView(APIView):
             'user': UserSerializer(user).data
         })
 
+class SyncUserView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        clerk_id = request.data.get('clerk_id')
+        email = request.data.get('email')
+        name = request.data.get('name', '')
+        
+        if not clerk_id or not email:
+            return Response({"error": "clerk_id and email are required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'username': email.split('@')[0],
+                'first_name': name.split(' ')[0] if ' ' in name else name,
+                'last_name': name.split(' ')[1] if ' ' in name else ''
+            }
+        )
+        
+        # Optionally update clerk_id if you want to store it in User model
+        # user.clerk_id = clerk_id
+        # user.save()
+        
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': UserSerializer(user).data
+        })
+
 class WorkspaceCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = WorkspaceSerializer
