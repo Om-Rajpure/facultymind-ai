@@ -50,8 +50,16 @@ export const AuthProvider = ({ children }) => {
     syncWithBackend();
   }, [isClerkLoaded, isSignedIn, clerkUser]);
 
+  const updateProfile = (data) => {
+    setUser(prev => prev ? { ...prev, ...data } : null);
+  };
+
+  const setWorkspace = (workspace) => {
+    setUser(prev => prev ? { ...prev, workspace } : null);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, tokens, loading, setUser }}>
+    <AuthContext.Provider value={{ user, tokens, loading, setUser, updateProfile, setWorkspace }}>
       {children}
     </AuthContext.Provider>
   );

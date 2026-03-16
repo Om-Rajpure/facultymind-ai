@@ -1,8 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { SignIn } from "@clerk/react";
+import { useAuth } from '../context/AuthContext';
+import AuthRedirect from '../components/auth/AuthRedirect';
 
 const Login = () => {
+  const { user } = useAuth();
+
+  if (user) return <AuthRedirect />;
   return (
     <section className="min-h-screen pt-24 pb-16 flex items-center justify-center">
       <div className="container-1200 flex items-center justify-center">

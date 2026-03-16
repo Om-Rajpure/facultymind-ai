@@ -34,9 +34,9 @@ const Navbar = () => {
           ]
       )
     : [
-        { name: 'Home', path: '/' },
-        { name: 'Features', path: '/#features' },
-        { name: 'How It Works', path: '/#how-it-works' },
+        { name: 'Home', path: '#home' },
+        { name: 'Features', path: '#features' },
+        { name: 'How It Works', path: '#how-it-works' },
       ];
 
   return (
@@ -55,43 +55,47 @@ const Navbar = () => {
           {user?.role === 'admin' ? (
             <span className="text-white font-extrabold text-lg tracking-tight">FacultyMind <span className="text-secondary text-base">Admin</span></span>
           ) : (
-            navLinks.map((link) => (
-              <Link 
-                key={link.name}
-                to={link.path}
-                className="text-text-muted hover:text-white font-semibold text-sm transition-all hover:scale-105 relative group"
-              >
-                {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-              </Link>
-            ))
+            <div className="flex items-center space-x-8">
+              {navLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.path}
+                  className="text-text-muted hover:text-white font-semibold text-sm transition-all hover:scale-105 relative group"
+                >
+                  {link.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+                </a>
+              ))}
+            </div>
           )}
         </div>
 
         {/* Right: Buttons */}
         <div className="hidden lg:flex items-center gap-4 xl:gap-6">
-          <Show when="signed-in">
-            <div className="flex items-center gap-4">
-              <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-                <span className="text-xs font-bold text-white">{user?.first_name || user?.username || "Faculty User"}</span>
+          <div className="flex items-center gap-4 xl:gap-6">
+            <Show when="signed-in">
+              <div className="flex items-center gap-4">
+                <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                  <span className="text-xs font-bold text-white">{user?.first_name || user?.username || "Faculty User"}</span>
+                </div>
+                <UserButton afterSignOutUrl="/" />
               </div>
-              <UserButton afterSignOutUrl="/" />
-            </div>
-          </Show>
-          <Show when="signed-out">
-            <div className="flex items-center gap-4">
-              <SignInButton mode="modal">
-                <button className="text-text-muted hover:text-white font-semibold text-sm transition-colors border-none bg-transparent cursor-pointer">
-                  Login
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button className="btn-primary">
-                  Get Started
-                </button>
-              </SignUpButton>
-            </div>
-          </Show>
+            </Show>
+            <Show when="signed-out">
+              <div className="flex items-center gap-4">
+                <SignInButton mode="modal">
+                  <button className="text-text-muted hover:text-white font-semibold text-sm transition-colors border-none bg-transparent cursor-pointer">
+                    Login
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="btn-primary">
+                    Get Started
+                  </button>
+                </SignUpButton>
+              </div>
+            </Show>
+          </div>
         </div>
 
         {/* Mobile Toggle */}
