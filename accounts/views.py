@@ -46,23 +46,26 @@ class SyncUserView(APIView):
             return Response({"error": "clerk_id and email are required"}, status=status.HTTP_400_BAD_REQUEST)
             
         user, created = User.objects.get_or_create(
-            email=email,
+            clerk_user_id=clerk_id,
             defaults={
+                'email': email,
                 'username': email.split('@')[0],
                 'first_name': name.split(' ')[0] if ' ' in name else name,
                 'last_name': name.split(' ')[1] if ' ' in name else ''
             }
         )
         
-        # Optionally update clerk_id if you want to store it in User model
-        # user.clerk_id = clerk_id
-        # user.save()
-        
         refresh = RefreshToken.for_user(user)
         return Response({
             'access': str(refresh.access_token),
             'refresh': str(refresh),
-            'user': UserSerializer(user).data
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'name': f"{user.first_name} {user.last_name}".strip(),
+                'role': user.role,
+                'workspace': user.workspace.id if user.workspace else None
+            }
         })
 
 class WorkspaceCreateView(generics.CreateAPIView):

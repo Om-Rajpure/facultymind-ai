@@ -6,10 +6,13 @@ import string
 def generate_join_code():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 
+import uuid
+
 class Workspace(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    admin = models.ForeignKey('User', on_delete=models.CASCADE, related_name='administered_workspace')
-    join_code = models.CharField(max_length=20, unique=True)
+    admin = models.ForeignKey('User', on_delete=models.CASCADE, related_name='owned_workspaces')
+    join_code = models.CharField(max_length=10, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -23,7 +26,8 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
-        default="teacher"
+        null=True,
+        blank=True
     )
     workspace = models.ForeignKey(
         Workspace,
@@ -31,6 +35,12 @@ class User(AbstractUser):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='members'
+    )
+    clerk_user_id = models.CharField(
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True
     )
     
     # Profile fields moved from UserProfile
