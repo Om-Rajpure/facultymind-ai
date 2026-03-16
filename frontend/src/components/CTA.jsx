@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const CTA = ({ onStart }) => {
+const CTA = () => {
+  const navigate = useNavigate();
   return (
     <section className="py-20 md:py-32">
       <div className="container-custom">
@@ -29,7 +31,7 @@ const CTA = ({ onStart }) => {
           
           <div className="pt-6 relative z-10">
             <button 
-              onClick={onStart}
+              onClick={() => navigate("/assessment")}
               className="btn-primary text-xl px-12 py-6 rounded-[2rem] shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 group"
             >
               Start Your Assessment <ArrowRight className="group-hover:translate-x-1 transition-transform" />

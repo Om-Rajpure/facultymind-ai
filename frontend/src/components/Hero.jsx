@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, ShieldCheck, Activity, Brain } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const Hero = ({ onStart }) => {
+const Hero = () => {
+  const navigate = useNavigate();
   const stats = [
     { 
       title: '18 Targeted Questions', 
@@ -47,7 +49,7 @@ const Hero = ({ onStart }) => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
               <button 
-                onClick={onStart}
+                onClick={() => navigate("/assessment")}
                 className="btn-primary hover-glow w-full sm:w-auto"
               >
                 Start Your Assessment <ArrowRight size={20} />

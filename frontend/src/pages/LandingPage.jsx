@@ -8,18 +8,18 @@ import Roles from '../components/Roles.jsx';
 import VisualizationPreview from '../components/VisualizationPreview.jsx';
 import CTA from '../components/CTA.jsx';
 
-const LandingPage = ({ onStartAssessment }) => {
+const LandingPage = () => {
   return (
     <div className="relative">
       <div className="particles-overlay" />
-      <Hero onStart={onStartAssessment} />
+      <Hero />
       <Problem />
       <HowItWorks />
       <Features />
       <MLSection />
       <Roles />
       <VisualizationPreview />
-      <CTA onStart={onStartAssessment} />
+      <CTA />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Brain, Twitter, Github, Linkedin, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -25,20 +26,20 @@ const Footer = () => {
         <div>
           <h4 className="font-bold mb-6">Platform</h4>
           <ul className="space-y-4 text-text-muted text-sm">
-            <li><a href="#" className="hover:text-white transition-colors">Assessment</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Admin Dashboard</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Term of Service</a></li>
+            <li><Link to="/assessment" className="hover:text-white transition-colors">Assessment</Link></li>
+            <li><Link to="/admin-dashboard" className="hover:text-white transition-colors">Admin Dashboard</Link></li>
+            <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+            <li><Link to="/terms" className="hover:text-white transition-colors">Term of Service</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-bold mb-6">Resources</h4>
           <ul className="space-y-4 text-text-muted text-sm">
-            <li><a href="#" className="hover:text-white transition-colors">ML Whitepaper</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Accreditation Info</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Mental Health Tips</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Institution Support</a></li>
+            <li><Link to="/whitepaper" className="hover:text-white transition-colors">ML Whitepaper</Link></li>
+            <li><Link to="/accreditation" className="hover:text-white transition-colors">Accreditation Info</Link></li>
+            <li><Link to="/tips" className="hover:text-white transition-colors">Mental Health Tips</Link></li>
+            <li><Link to="/support" className="hover:text-white transition-colors">Institution Support</Link></li>
           </ul>
         </div>
 
