@@ -12,9 +12,8 @@ const Signup = () => {
           className="w-full max-w-md"
         >
           <SignUp 
-            routing="path" 
-            path="/signup" 
             signInUrl="/login"
+            clerkJSVersion="6"
             appearance={{
               elements: {
                 rootBox: "w-full",

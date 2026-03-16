@@ -4,8 +4,8 @@ import { SignIn } from "@clerk/react";
 
 const Login = () => {
   return (
-    <section className="min-h-screen pt-24 pb-16 flex items-center">
-      <div className="container-1200 items-center">
+    <section className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+      <div className="container-1200 flex items-center justify-center">
         <div className="flex flex-col lg:flex-row items-center gap-16 md:gap-24">
           {/* Left: Login Card */}
           <motion.div 
@@ -15,9 +15,8 @@ const Login = () => {
           >
             <div className="glass-card p-0 relative overflow-hidden group border-none shadow-none">
               <SignIn 
-                routing="path" 
-                path="/login" 
                 signUpUrl="/signup"
+                clerkJSVersion="6"
                 appearance={{
                   elements: {
                     rootBox: "w-full",
