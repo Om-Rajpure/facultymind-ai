@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useUser } from "@clerk/react";
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import AuthGate from './components/auth/AuthGate.jsx';
 import MainLayout from './components/layout/MainLayout.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import Login from './pages/Login.jsx';
@@ -192,7 +193,9 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <AppContent />
+        <AuthGate>
+          <AppContent />
+        </AuthGate>
       </Router>
     </AuthProvider>
   );

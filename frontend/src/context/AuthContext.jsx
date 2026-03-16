@@ -17,16 +17,25 @@ export const AuthProvider = ({ children }) => {
   // Sync with backend when Clerk user is loaded and signed in
   useEffect(() => {
     const syncWithBackend = async () => {
+      console.log("AUTH DEBUG → isClerkLoaded:", isClerkLoaded);
+      console.log("AUTH DEBUG → isSignedIn:", isSignedIn);
+      console.log("AUTH DEBUG → Clerk User:", clerkUser);
+
       if (isClerkLoaded && isSignedIn && clerkUser) {
         try {
           setLoading(true);
+          console.log("AUTH DEBUG → Syncing with backend...");
           const response = await axios.post(`${API_BASE_URL}/accounts/sync-user/`, {
             clerk_id: clerkUser.id,
             email: clerkUser.primaryEmailAddress?.emailAddress,
             name: clerkUser.fullName || clerkUser.username || '',
           });
 
+          console.log("AUTH DEBUG → Backend response:", response.data);
           const { user: backendUser, access, refresh } = response.data;
+          console.log("AUTH DEBUG → Backend User:", backendUser);
+          console.log("AUTH DEBUG → Role:", backendUser?.role);
+          console.log("AUTH DEBUG → Workspace:", backendUser?.workspace);
           setUser(backendUser);
           setTokens({ access, refresh });
           
@@ -34,11 +43,13 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('facultymind_access', access);
           localStorage.setItem('facultymind_refresh', refresh);
         } catch (error) {
-          console.error('Backend sync failed:', error);
+          console.error('AUTH DEBUG → Backend sync failed:', error);
         } finally {
           setLoading(false);
+          console.log("AUTH DEBUG → loading set to false");
         }
       } else if (isClerkLoaded && !isSignedIn) {
+        console.log("AUTH DEBUG → User not signed in, clearing state");
         setUser(null);
         setTokens(null);
         setLoading(false);
