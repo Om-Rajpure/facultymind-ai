@@ -13,9 +13,10 @@ const RoleSelection = () => {
 
   const handleRoleSelect = async (role) => {
     try {
-      await axios.post(`${API_BASE_URL}/accounts/setup-profile/`, { role }, {
+      await axios.post(`${API_BASE_URL}/accounts/set-role/`, { role }, {
         headers: { Authorization: `Bearer ${tokens.access}` }
       });
+      console.log("AUTH FLOW: role selected", role);
       updateProfile({ role });
       navigate('/profile-setup');
     } catch (error) {

@@ -19,8 +19,8 @@ import CreateWorkspace from './pages/CreateWorkspace.jsx';
 import JoinWorkspace from './pages/JoinWorkspace.jsx';
 
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
   const { isLoaded: isClerkLoaded, isSignedIn } = useUser();
+  const { user, loading } = useAuth();
 
   if (!isClerkLoaded || (isSignedIn && loading)) {
     return (
@@ -35,26 +35,12 @@ const ProtectedRoute = ({ children }) => {
   // Wait for backend user to be synced
   if (!user) return null; 
 
-  // Role and Workspace Redirection Logic
-  const pathname = window.location.pathname;
-  
-  // 1. If no role, must go to select-role
-  if (!user.role && pathname !== '/select-role') {
-    return <Navigate to="/select-role" />;
-  }
-
-  // 2. If no workspace, must go to setup (unless already on a setup page)
-  const isWorkspaceSetup = pathname === '/create-workspace' || pathname === '/join-workspace' || pathname === '/select-role';
-  if (user.role && !user.workspace && !isWorkspaceSetup) {
-    return user.role === 'admin' ? <Navigate to="/create-workspace" /> : <Navigate to="/join-workspace" />;
-  }
-  
   return children;
 };
 
 const AdminProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
   const { isLoaded: isClerkLoaded, isSignedIn } = useUser();
+  const { user, loading } = useAuth();
 
   if (!isClerkLoaded || (isSignedIn && loading)) return null; 
 
@@ -62,10 +48,6 @@ const AdminProtectedRoute = ({ children }) => {
   if (!user) return null;
   
   if (user.role !== 'admin') return <Navigate to="/dashboard" />;
-  
-  if (!user.workspace && window.location.pathname !== '/create-workspace') {
-    return <Navigate to="/create-workspace" />;
-  }
   
   return children;
 };

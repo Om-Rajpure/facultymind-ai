@@ -20,23 +20,40 @@ function AuthGate({ children }) {
     const path = location.pathname;
     const authPages = ["/login", "/signup"];
 
-    // 2. Ignore auth pages to allow Clerk's own flows
-    if (authPages.includes(path)) return;
+    console.log("AUTH STATE:", {
+      role: user.role,
+      workspace: user.workspace,
+      profileComplete: !!(user.age && user.department && user.experience && user.institution)
+    });
 
-    console.log("AUTH GATE → path:", path, "role:", user.role, "workspace:", user.workspace);
+    // 2. Determine Profile Status
+    const isProfileComplete = !!(user.age && user.department && user.experience && user.institution);
 
-    // 3. ROLE CHECK (Highest Priority)
+    // 3. FULL REDIRECT PRIORITY LOGIC
+    
+    // Priority 1: Profile incomplete -> /profile-setup
+    if (!isProfileComplete) {
+      if (path !== "/profile-setup") {
+        console.log("AUTH GATE → Redirecting to /profile-setup");
+        navigate("/profile-setup", { replace: true });
+      }
+      return;
+    }
+
+    // Priority 2: Profile complete but role missing -> /select-role
     if (!user.role) {
       if (path !== "/select-role") {
+        console.log("AUTH GATE → Redirecting to /select-role");
         navigate("/select-role", { replace: true });
       }
       return;
     }
 
-    // 4. WORKSPACE CHECK
+    // Priority 3: Role exists but workspace missing
     if (!user.workspace) {
       if (user.role === "admin") {
         if (path !== "/create-workspace") {
+          console.log("AUTH GATE → Redirecting to /create-workspace");
           navigate("/create-workspace", { replace: true });
         }
         return;
@@ -44,22 +61,23 @@ function AuthGate({ children }) {
 
       if (user.role === "teacher") {
         if (path !== "/join-workspace") {
+          console.log("AUTH GATE → Redirecting to /join-workspace");
           navigate("/join-workspace", { replace: true });
         }
         return;
       }
     }
 
-    // 5. OPTIONAL DASHBOARD REDIRECT
-    // If user completes onboarding but lands on "/"
-    if (user.workspace && path === "/") {
+    // Priority 4: Everything complete -> Dashboards
+    // Only redirect if on root or onboarding pages
+    const onboardingPages = ["/", "/profile-setup", "/select-role", "/create-workspace", "/join-workspace"];
+    if (onboardingPages.includes(path)) {
       if (user.role === "admin") {
+        console.log("AUTH GATE → Redirecting to /admin-dashboard");
         navigate("/admin-dashboard", { replace: true });
-        return;
-      }
-      if (user.role === "teacher") {
+      } else if (user.role === "teacher") {
+        console.log("AUTH GATE → Redirecting to /dashboard");
         navigate("/dashboard", { replace: true });
-        return;
       }
     }
   }, [isLoaded, isSignedIn, loading, user, location.pathname, navigate]);

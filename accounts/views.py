@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, Workspace, generate_join_code
+from assessment.models import Institution, Department
 from .serializers import UserSerializer, WorkspaceSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -64,9 +65,57 @@ class SyncUserView(APIView):
                 'email': user.email,
                 'name': f"{user.first_name} {user.last_name}".strip(),
                 'role': user.role,
-                'workspace': user.workspace.id if user.workspace else None
+                'workspace': user.workspace.id if user.workspace else None,
+                'age': user.age,
+                'department': user.department.name if user.department else None,
+                'experience': user.experience,
+                'institution': user.institution.name if user.institution else None
             }
         })
+
+class SetRoleView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        role = request.data.get('role')
+        if role not in ['teacher', 'admin']:
+            return Response({"error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = request.user
+        user.role = role
+        user.save()
+        return Response({"role": user.role}, status=status.HTTP_200_OK)
+
+class SetupProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+        user = request.user
+        
+        try:
+            # Handle profile fields
+            user.first_name = data.get('name', '').split(' ')[0] if ' ' in data.get('name', '') else data.get('name', '')
+            user.last_name = data.get('name', '').split(' ')[1] if ' ' in data.get('name', '') else ''
+            user.age = data.get('age')
+            user.experience = data.get('experience')
+            
+            # Handle Institution and Department
+            inst_name = data.get('institution')
+            dept_name = data.get('department')
+            
+            if inst_name:
+                institution, _ = Institution.objects.get_or_create(name=inst_name)
+                user.institution = institution
+                
+                if dept_name:
+                    department, _ = Department.objects.get_or_create(institution=institution, name=dept_name)
+                    user.department = department
+            
+            user.save()
+            return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class WorkspaceCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
