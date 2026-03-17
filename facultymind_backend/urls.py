@@ -16,14 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from accounts.views import my_workspace_view, create_workspace_view, WorkspaceJoinView
+from accounts.views import my_workspace_view, create_workspace_view, join_workspace_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/accounts/', include('accounts.urls')),
     path('api/workspaces/my-workspace/', my_workspace_view, name='my_workspace_api'),
     path('api/workspaces/create/', create_workspace_view, name='workspace_create_api'),
-    path('api/workspaces/join/', WorkspaceJoinView.as_view(), name='workspace_join_api'),
+    path('api/workspaces/join/', join_workspace_view, name='workspace_join_api'),
     path('api/', include('assessment.urls')),
     path('accounts/', include('allauth.urls')),
 ]

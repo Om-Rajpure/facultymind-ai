@@ -155,6 +155,9 @@ def create_workspace_view(request):
         while Workspace.objects.filter(join_code=join_code).exists():
             join_code = 'FAC' + ''.join(random.choices(string.digits, k=5))
 
+        # Ensure join_code is normalized at creation
+        join_code = join_code.strip().upper()
+
         workspace = Workspace.objects.create(
             name=name,
             admin=request.user,
@@ -174,23 +177,45 @@ def create_workspace_view(request):
         print(f"Workspace creation error: {str(e)}")
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-class WorkspaceJoinView(APIView):
-    permission_classes = [IsAuthenticated]
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def join_workspace_view(request):
+    try:
+        raw_code = request.data.get('join_code', '')
+        print("RAW CODE:", repr(raw_code))
 
-    def post(self, request):
-        join_code = request.data.get('join_code')
-        if not join_code:
-            return Response({"error": "Join code is required"}, status=status.HTTP_400_BAD_REQUEST)
-            
-        try:
-            workspace = Workspace.objects.get(join_code=join_code)
-            user = request.user
-            user.workspace = workspace
-            user.role = 'teacher'
-            user.save()
-            return Response(UserSerializer(user).data)
-        except Workspace.DoesNotExist:
-            return Response({"error": "Invalid join code"}, status=status.HTTP_404_NOT_FOUND)
+        # Normalize input
+        join_code = raw_code.strip().upper()
+        print("NORMALIZED CODE:", repr(join_code))
+
+        from accounts.models import Workspace
+
+        # Efficient case-insensitive query
+        workspace = Workspace.objects.filter(join_code__iexact=join_code).first()
+        print("WORKSPACE FOUND:", workspace)
+
+        if not workspace:
+            return Response(
+                {"error": "Invalid workspace code"},
+                status=400
+            )
+
+        user = request.user
+
+        # Assign workspace + role
+        user.workspace = workspace
+        user.role = "teacher"
+        user.save()
+
+        return Response({
+            "message": "Joined successfully",
+            "workspace": workspace.name
+        }, status=200)
+
+    except Exception as e:
+        print("JOIN ERROR:", str(e))
+        return Response({"error": str(e)}, status=400)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

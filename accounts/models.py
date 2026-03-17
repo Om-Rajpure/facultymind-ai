@@ -15,6 +15,11 @@ class Workspace(models.Model):
     join_code = models.CharField(max_length=10, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if self.join_code:
+            self.join_code = self.join_code.strip().upper()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
