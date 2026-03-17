@@ -14,7 +14,9 @@ import {
   Eye,
   MessageSquare,
   Loader2,
-  Shield
+  Shield,
+  Copy,
+  Check
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -107,9 +109,9 @@ const SuperAdminDashboard = () => {
 
   const filteredUsers = users.filter(user => {
     const name = user.name || 'Unknown';
-    const workspace = user.workspace || 'N/A';
+    const workspaceCode = user.workspace_code || '';
     const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         workspace.toLowerCase().includes(searchTerm.toLowerCase());
+                         workspaceCode.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (filter === 'All') return matchesSearch;
     if (filter === 'Teachers') return matchesSearch && user.role === 'teacher';
@@ -194,7 +196,7 @@ const SuperAdminDashboard = () => {
                 <tr className="border-b border-white/5 bg-white/5">
                   <th className="px-6 py-4 text-sm font-semibold text-white">Name</th>
                   <th className="px-6 py-4 text-sm font-semibold text-white">Role</th>
-                  <th className="px-6 py-4 text-sm font-semibold text-white">Workspace</th>
+                  <th className="px-6 py-4 text-sm font-semibold text-white">Workspace Code</th>
                   <th className="px-6 py-4 text-sm font-semibold text-white">Department</th>
                   <th className="px-6 py-4 text-sm font-semibold text-white">Risk</th>
                   <th className="px-6 py-4 text-sm font-semibold text-white">Actions</th>
@@ -226,7 +228,27 @@ const SuperAdminDashboard = () => {
                           {user.role || 'No Role'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-text-muted text-sm">{user.workspace || 'N/A'}</td>
+                      <td className="px-6 py-4">
+                        {user.workspace_code ? (
+                          <div className="flex items-center gap-2">
+                            <span className="px-3 py-1 rounded-lg bg-primary/10 text-primary text-sm font-mono border border-primary/20">
+                              {user.workspace_code}
+                            </span>
+                            <button 
+                              onClick={() => {
+                                navigator.clipboard.writeText(user.workspace_code);
+                                // Optional: simple alert or local state for feedback
+                              }}
+                              className="p-1 hover:bg-white/10 rounded text-text-muted hover:text-primary transition-colors"
+                              title="Copy Code"
+                            >
+                              <Copy size={14} />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-text-muted">N/A</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-text-muted text-sm">{user.department || 'N/A'}</td>
                       <td className="px-6 py-4">
                         <div className={`flex items-center gap-1.5 text-sm font-medium ${

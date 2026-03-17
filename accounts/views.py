@@ -273,6 +273,7 @@ class SuperAdminUserListView(APIView):
                 "name": f"{user.first_name} {user.last_name}".strip() or user.username,
                 "role": user.role,
                 "workspace": user.workspace.name if user.workspace else "N/A",
+                "workspace_code": user.workspace.join_code if user.workspace else None,
                 "department": user.department.name if user.department else "N/A",
                 "risk_level": risk_level
             })
