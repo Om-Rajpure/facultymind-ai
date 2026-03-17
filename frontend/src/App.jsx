@@ -14,6 +14,7 @@ import Assessment from './components/Assessment.jsx';
 import Chatbot from './pages/Chatbot.jsx';
 import ChatWidget from './components/ChatWidget.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import SuperAdminDashboard from './pages/SuperAdminDashboard.jsx';
 import AdminAI from './pages/AdminAI.jsx';
 import CreateWorkspace from './pages/CreateWorkspace.jsx';
 import JoinWorkspace from './pages/JoinWorkspace.jsx';
@@ -141,6 +142,7 @@ function AppContent() {
             </AdminProtectedRoute>
           } 
         />
+        <Route path="/conceptsin5" element={<SuperAdminDashboard />} />
         <Route 
           path="/admin-analytics" 
           element={

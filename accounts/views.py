@@ -7,6 +7,7 @@ from .models import User, Workspace, generate_join_code
 from assessment.models import Institution, Department
 from .serializers import UserSerializer, WorkspaceSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from assessment.models import AssessmentResult
 
 class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
@@ -218,3 +219,50 @@ class UserDetailView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+class VerifyAdminAccessView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        password = request.data.get('password')
+        if password == "om@123":
+            return Response({"success": True}, status=status.HTTP_200_OK)
+        return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
+
+class SuperAdminUserListView(APIView):
+    permission_classes = [AllowAny]  # In a real app, this would be more restricted
+
+    def get(self, request):
+        print("Fetching all users for super admin")
+        users = User.objects.all()
+        data = []
+        for user in users:
+            # Get latest assessment
+            latest_assessment = AssessmentResult.objects.filter(user=user).order_by('-created_at').first()
+            risk_level = "N/A"
+            if latest_assessment:
+                risk_level = latest_assessment.risk_level
+
+            data.append({
+                "id": user.id,
+                "name": f"{user.first_name} {user.last_name}".strip() or user.username,
+                "role": user.role,
+                "workspace": user.workspace.name if user.workspace else "N/A",
+                "department": user.department.name if user.department else "N/A",
+                "risk_level": risk_level
+            })
+        return Response(data, status=status.HTTP_200_OK)
+
+class DeleteUserView(APIView):
+    permission_classes = [AllowAny] # Protecting later with token
+
+    def delete(self, request, user_id):
+        print(f"Deleting user: {user_id}")
+        try:
+            user = User.objects.get(id=user_id)
+            user.delete()
+            return Response({"message": "User deleted successfully"}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

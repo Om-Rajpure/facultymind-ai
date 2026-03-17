@@ -1,9 +1,11 @@
 import React from 'react';
-import { Brain } from 'lucide-react';
+import { Brain, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FaGithub, FaLinkedin, FaInstagram, FaYoutube } from "react-icons/fa";
+import AdminAccessModal from '../ui/AdminAccessModal';
 
 const Footer = () => {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
   return (
     <footer className="mt-24 pt-16 pb-10 border-t border-white/10 glass-card !rounded-none !border-x-0 !border-b-0">
       <div className="container-1200 mx-auto px-6">
@@ -54,12 +56,24 @@ const Footer = () => {
               <a href="https://www.youtube.com/@conceptsin5" target="_blank" rel="noopener noreferrer" className="text-2xl text-white hover:text-primary transition-all duration-300 hover:scale-110">
                 <FaYoutube />
               </a>
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="text-xl text-white/40 hover:text-primary transition-all duration-300 hover:scale-110 cursor-default"
+                title="Admin Access"
+              >
+                <Shield className="w-5 h-5" />
+              </button>
             </div>
             <p className="text-text-muted text-xs">
               Stay updated with our latest wellness insights and platform features.
             </p>
           </div>
         </div>
+
+        <AdminAccessModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+        />
 
         {/* Bottom Bar: Copyright */}
         <div className="pt-8 border-t border-white/5 text-center">
