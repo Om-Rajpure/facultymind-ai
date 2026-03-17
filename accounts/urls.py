@@ -4,7 +4,8 @@ from .views import (
     SyncUserView,
     SetRoleView,
     SetupProfileView,
-    WorkspaceCreateView, 
+    create_workspace_view,
+    my_workspace_view,
     WorkspaceJoinView, 
     UserDetailView
 )
@@ -14,7 +15,8 @@ urlpatterns = [
     path('sync-user/', SyncUserView.as_view(), name='sync_user'),
     path('set-role/', SetRoleView.as_view(), name='set_role'),
     path('setup-profile/', SetupProfileView.as_view(), name='setup_profile'),
-    path('workspace/create/', WorkspaceCreateView.as_view(), name='workspace_create'),
+    path('workspace/create/', create_workspace_view, name='workspace_create'),
+    path('workspace/my-workspace/', my_workspace_view, name='my_workspace'),
     path('workspace/join/', WorkspaceJoinView.as_view(), name='workspace_join'),
     path('user/me/', UserDetailView.as_view(), name='user_me'),
 ]

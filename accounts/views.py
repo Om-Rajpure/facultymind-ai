@@ -1,4 +1,5 @@
 from rest_framework import status, generics
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -131,6 +132,47 @@ class WorkspaceCreateView(generics.CreateAPIView):
         user.workspace = workspace
         user.save()
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_workspace_view(request):
+    print("User:", request.user)
+    print("Role:", request.user.role)
+    
+    if request.user.role != 'admin':
+        return Response({"error": "Only admins can create workspaces."}, status=status.HTTP_403_FORBIDDEN)
+    
+    name = request.data.get('name')
+    if not name:
+        return Response({"error": "Workspace name is required."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Generate unique join code with FAC prefix
+        import random, string
+        join_code = 'FAC' + ''.join(random.choices(string.digits, k=5))
+        
+        # Ensure uniqueness
+        while Workspace.objects.filter(join_code=join_code).exists():
+            join_code = 'FAC' + ''.join(random.choices(string.digits, k=5))
+
+        workspace = Workspace.objects.create(
+            name=name,
+            admin=request.user,
+            join_code=join_code
+        )
+        
+        user = request.user
+        user.workspace = workspace
+        user.save()
+        
+        return Response({
+            "workspace_id": str(workspace.id),
+            "join_code": workspace.join_code,
+            "name": workspace.name
+        }, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        print(f"Workspace creation error: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class WorkspaceJoinView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -148,6 +190,27 @@ class WorkspaceJoinView(APIView):
             return Response(UserSerializer(user).data)
         except Workspace.DoesNotExist:
             return Response({"error": "Invalid join code"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_workspace_view(request):
+    print("DEBUG: Fetching workspace for user:", request.user.email)
+    print("DEBUG: User Role:", request.user.role)
+    
+    if request.user.role != 'admin':
+        print("DEBUG: Access denied - Not an admin")
+        return Response({"error": "Admin access required."}, status=status.HTTP_403_FORBIDDEN)
+    
+    workspace = request.user.workspace
+    if not workspace:
+        print("DEBUG: No workspace linked to this user")
+        return Response({"error": "No workspace found for this admin."}, status=status.HTTP_404_NOT_FOUND)
+    
+    print("DEBUG: Found workspace:", workspace.name, "Join Code:", workspace.join_code)
+    return Response({
+        "workspace_name": workspace.name,
+        "join_code": workspace.join_code
+    }, status=status.HTTP_200_OK)
 
 class UserDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]

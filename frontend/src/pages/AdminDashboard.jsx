@@ -32,6 +32,7 @@ import {
   Pie
 } from 'recharts';
 import Section from '../components/ui/Section';
+import WorkspaceCodeCard from '../components/ui/WorkspaceCodeCard';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
@@ -55,6 +56,7 @@ const AdminDashboard = () => {
   const [isMessageOpen, setIsMessageOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [workspaceData, setWorkspaceData] = useState(null);
 
   useEffect(() => {
     fetchAdminData();
@@ -63,18 +65,24 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     try {
       setLoading(true);
+      console.log("DEBUG: AdminDashboard - User:", user);
+      console.log("DEBUG: AdminDashboard - Role:", user?.role);
+      
       const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
-      const [overviewRes, deptRes, highRiskRes, facultyRes] = await Promise.all([
+      const [overviewRes, deptRes, highRiskRes, facultyRes, workspaceRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/admin/overview/`, config),
         axios.get(`${API_BASE_URL}/admin/department-analytics/`, config),
         axios.get(`${API_BASE_URL}/admin/high-risk/`, config),
-        axios.get(`${API_BASE_URL}/admin/faculty/`, config)
+        axios.get(`${API_BASE_URL}/admin/faculty/`, config),
+        axios.get(`${API_BASE_URL.replace('/api', '')}/api/workspaces/my-workspace/`, config)
       ]);
-
+      
+      console.log("DEBUG: AdminDashboard - Workspace API Response:", workspaceRes.data);
       setStats(overviewRes.data);
       setDeptData(deptRes.data);
       setHighRiskFaculty(highRiskRes.data);
       setFacultyList(facultyRes.data);
+      setWorkspaceData(workspaceRes.data);
     } catch (error) {
       console.error("Error fetching admin data:", error);
     } finally {
@@ -181,15 +189,54 @@ const AdminDashboard = () => {
               Monitor faculty burnout patterns across the organization.
             </motion.p>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => window.location.href='/admin-ai'}
-            className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-primary/10 border border-primary/30 rounded-2xl text-primary font-bold hover:bg-primary/20 transition-all text-xs sm:text-base"
-          >
-            <MessageSquare size={18} /> <span className="hidden sm:inline">Ask AI Assistant</span><span className="sm:hidden">AI</span>
-          </motion.button>
+          <div className="flex items-center gap-4">
+            {workspaceData ? (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="hidden md:block"
+              >
+                <WorkspaceCodeCard joinCode={workspaceData.join_code} />
+              </motion.div>
+            ) : !loading ? (
+              <motion.div
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 className="hidden md:block text-orange-400 text-xs font-semibold bg-orange-500/10 px-4 py-2 rounded-xl border border-orange-500/20"
+              >
+                 Workspace not found. Please create one.
+              </motion.div>
+            ) : null}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => window.location.href='/admin-ai'}
+              className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-primary/10 border border-primary/30 rounded-2xl text-primary font-bold hover:bg-primary/20 transition-all text-xs sm:text-base h-full"
+            >
+              <MessageSquare size={18} /> <span className="hidden sm:inline">Ask AI Assistant</span><span className="sm:hidden">AI</span>
+            </motion.button>
+          </div>
         </div>
+        
+        {/* Mobile Workspace Code */}
+        {workspaceData ? (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="md:hidden mb-8"
+          >
+            <WorkspaceCodeCard joinCode={workspaceData.join_code} />
+          </motion.div>
+        ) : !loading ? (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="md:hidden mb-8 text-orange-400 text-xs font-semibold bg-orange-500/10 px-4 py-3 rounded-xl border border-orange-500/20 text-center"
+          >
+            Workspace not found. Please create one.
+          </motion.div>
+        ) : null}
 
         {/* Section 1: Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">

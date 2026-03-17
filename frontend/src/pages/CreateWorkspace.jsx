@@ -13,18 +13,26 @@ const CreateWorkspace = () => {
   const { setWorkspace, tokens } = useAuth();
   const navigate = useNavigate();
 
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+
   const handleCreate = async (e) => {
     e.preventDefault();
     setLoading(true);
+    console.log("Creating workspace:", name, "API URL:", API_BASE_URL);
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/accounts/workspace/create/`, 
+      const response = await axios.post(`${API_BASE_URL}/accounts/workspace/create/`, 
         { name },
         { headers: { Authorization: `Bearer ${tokens.access}` } }
       );
+      console.log("Workspace created successfully:", response.data);
       setWorkspaceData(response.data);
-      setWorkspace(response.data);
+      // Update global context with workspace ID
+      setWorkspace(response.data.workspace_id);
     } catch (error) {
       console.error('Error creating workspace:', error);
+      if (error.response) {
+        console.log("Backend error details:", error.response.data);
+      }
       alert('Failed to create workspace. Please try again.');
     } finally {
       setLoading(false);
@@ -64,7 +72,7 @@ const CreateWorkspace = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-slate-500"
-                    placeholder="e.g. Engineering College of Excellence"
+                    placeholder="e.g. AIDS of DMCE"
                   />
                 </div>
                 <button
