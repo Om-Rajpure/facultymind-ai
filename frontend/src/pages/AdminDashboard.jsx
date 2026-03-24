@@ -379,7 +379,7 @@ const AdminDashboard = () => {
                   {highRiskFaculty.length > 0 ? (
                     highRiskFaculty.map((faculty, index) => (
                       <tr key={index} className="hover:bg-white/5 transition-colors">
-                        <td className="px-8 py-5 text-white font-medium">{faculty.name}</td>
+                        <td className="px-8 py-5 text-white font-medium">Anonymous</td>
                         <td className="px-8 py-5 text-text-muted">{faculty.department}</td>
                         <td className="px-8 py-5 text-red-400 font-bold">{faculty.burnout_score}%</td>
                         <td className="px-8 py-5 text-text-muted text-sm">{faculty.assessment_date}</td>
@@ -430,7 +430,7 @@ const AdminDashboard = () => {
                 <tbody className="divide-y divide-white/5">
                   {facultyList.map((faculty, index) => (
                     <tr key={index} className="hover:bg-white/5 transition-colors cursor-pointer group" onClick={() => fetchFacultyHistory(faculty.id)}>
-                      <td className="px-8 py-5 text-white font-medium group-hover:text-primary transition-colors">{faculty.name}</td>
+                      <td className="px-8 py-5 text-white font-medium group-hover:text-primary transition-colors">Anonymous</td>
                       <td className="px-8 py-5 text-text-muted">{faculty.department}</td>
                       <td className="px-8 py-5">
                         <span className={`px-2 py-1 rounded-md text-[10px] font-bold border ${
@@ -474,7 +474,7 @@ const AdminDashboard = () => {
               <div className="p-8 border-b border-white/10 flex items-center justify-between">
                 <div>
                   <h2 className="text-3xl font-extrabold text-white">Burnout History</h2>
-                  <p className="text-text-muted">Viewing historical results for {facultyList.find(f => f.id === facultyHistory[0]?.user)?.name}</p>
+                  <p className="text-text-muted">Viewing historical results for Anonymous</p>
                 </div>
                 <button onClick={() => setIsHistoryOpen(false)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-white">
                   <X size={24} />
@@ -548,7 +548,7 @@ const AdminDashboard = () => {
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm font-bold text-text-muted">To: <span className="text-white">{selectedFaculty?.name}</span></p>
+                <p className="text-sm font-bold text-text-muted">To: <span className="text-white">Anonymous</span></p>
                 <textarea
                   className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-text-muted/30"
                   rows="5"

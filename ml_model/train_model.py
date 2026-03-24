@@ -11,17 +11,18 @@ def generate_synthetic_data(num_samples=1000):
     np.random.seed(42)
     
     # Features
-    workload = np.random.uniform(1, 5, num_samples)
-    stress = np.random.uniform(1, 5, num_samples)
-    sleep = np.random.uniform(1, 5, num_samples)
-    balance = np.random.uniform(1, 5, num_samples)
-    satisfaction = np.random.uniform(1, 5, num_samples)
-    support = np.random.uniform(1, 5, num_samples)
+    workload = np.random.uniform(1, 4, num_samples)
+    stress = np.random.uniform(1, 4, num_samples)
+    sleep = np.random.uniform(1, 4, num_samples)
+    balance = np.random.uniform(1, 4, num_samples)
+    satisfaction = np.random.uniform(1, 4, num_samples)
+    support = np.random.uniform(1, 4, num_samples)
     age = np.random.randint(22, 65, num_samples)
     experience = np.random.randint(0, 40, num_samples)
     
     # Logic for burnout_risk (Low, Medium, High)
-    # burnout_index formula
+    # burnout_index formula (1-4 scale)
+    # raw_index range: 1 to 4
     burnout_index = (
         (stress * 0.30) +
         (workload * 0.25) +
@@ -30,15 +31,15 @@ def generate_synthetic_data(num_samples=1000):
         (satisfaction * 0.10)
     )
     
-    # Map to risk level
-    # 1-2.5 -> Low (roughly 0-37% scaled)
-    # 2.5-3.8 -> Medium (roughly 37-70% scaled)
-    # 3.8-5 -> High (roughly 70-100% scaled)
+    # Map to risk level (1-4 scale)
+    # 1-2.0 -> Low
+    # 2.0-3.0 -> Medium
+    # 3.0-4.0 -> High
     risk_levels = []
     for val in burnout_index:
-        if val < 2.5:
+        if val < 2.0:
             risk_levels.append('Low')
-        elif val < 3.8:
+        elif val < 3.0:
             risk_levels.append('Medium')
         else:
             risk_levels.append('High')

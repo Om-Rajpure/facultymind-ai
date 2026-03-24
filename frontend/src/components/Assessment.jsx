@@ -5,215 +5,40 @@ import { useNavigate } from 'react-router-dom';
 
 const assessmentQuestions = [
   {
-    category: "Teaching Workload",
-    scenario: "On a typical day, you may conduct several theory lectures, lab sessions, and tutorials with minimal breaks between them.",
-    question: "How many teaching sessions (lectures/labs) do you usually conduct per day?",
-    options: [
-      { label: "1–2 sessions", value: 1 },
-      { label: "3–4 sessions", value: 2 },
-      { label: "5–6 sessions", value: 4 },
-      { label: "7+ sessions", value: 5 }
-    ]
+    id: "workload",
+    category: "Workload",
+    question: "How many teaching sessions do you usually conduct per day?",
+    options: ["1-2", "3-4", "5-6", "7+"]
   },
   {
-    category: "Teaching Workload",
-    scenario: "Beyond classroom teaching, you are often responsible for evaluating hundreds of assignments, lab records, and project reports every week.",
-    question: "How often do you find yourself taking evaluation work home to meet deadlines?",
-    options: [
-      { label: "Never", value: 1 },
-      { label: "Rarely", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Often", value: 4 },
-      { label: "Always", value: 5 }
-    ]
+    id: "stress",
+    category: "Stress",
+    question: "How often do you feel stressed or overwhelmed due to work?",
+    options: ["Rarely", "Sometimes", "Often", "Always"]
   },
   {
-    category: "Teaching Workload",
-    scenario: "Engineering faculty are expected to mentor students, guide final year projects, and handle administrative duties alongside teaching.",
-    question: "How frequently do you feel that administrative tasks interfere with your primary teaching responsibilities?",
-    options: [
-      { label: "Never", value: 1 },
-      { label: "Rarely", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Often", value: 4 },
-      { label: "Always", value: 5 }
-    ]
+    id: "sleep",
+    category: "Sleep",
+    question: "How would you rate your sleep quality?",
+    options: ["Very good", "Good", "Poor", "Very poor"]
   },
   {
-    category: "Mental Stress",
-    scenario: "During semester exams or project vivas, the pressure to maintain academic standards while managing large groups of students can be intense.",
-    question: "How often do you feel mentally drained or 'empty' at the end of a college day?",
-    options: [
-      { label: "Never", value: 1 },
-      { label: "Rarely", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Often", value: 4 },
-      { label: "Always", value: 5 }
-    ]
-  },
-  {
-    category: "Mental Stress",
-    scenario: "Preparing for new subjects, staying updated with technology, and meeting research expectations requires constant mental effort.",
-    question: "How frequently do you feel anxious about your ability to meet the department's performance expectations?",
-    options: [
-      { label: "Never", value: 1 },
-      { label: "Rarely", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Often", value: 4 },
-      { label: "Always", value: 5 }
-    ]
-  },
-  {
-    category: "Mental Stress",
-    scenario: "Some students may show lack of interest, while others may require constant support, which can be emotionally taxing for educators.",
-    question: "How often do you feel frustrated or impatient when dealing with student-related issues?",
-    options: [
-      { label: "Never", value: 1 },
-      { label: "Rarely", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Often", value: 4 },
-      { label: "Always", value: 5 }
-    ]
-  },
-  {
-    category: "Sleep & Physical Health",
-    scenario: "Late-night preparation for the next day's 8 AM class or grading papers often cuts into your rest time.",
-    question: "How many hours of quality sleep do you get on an average workday?",
-    options: [
-      { label: "8+ hours", value: 1 },
-      { label: "7 hours", value: 2 },
-      { label: "5-6 hours", value: 4 },
-      { label: "Less than 5 hours", value: 5 }
-    ]
-  },
-  {
-    category: "Sleep & Physical Health",
-    scenario: "Standing for long hours in labs and classrooms can lead to physical fatigue or chronic issues like back pain.",
-    question: "How often do you experience physical symptoms like headaches or muscle tension due to work stress?",
-    options: [
-      { label: "Never", value: 1 },
-      { label: "Rarely", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Often", value: 4 },
-      { label: "Always", value: 5 }
-    ]
-  },
-  {
-    category: "Sleep & Physical Health",
-    scenario: "Busy schedules often lead to skipped meals or relying on canteen food instead of balanced nutrition.",
-    question: "Do you feel that your physical energy levels are sufficient to perform your academic duties effectively?",
-    options: [
-      { label: "Always Energetic", value: 1 },
-      { label: "Usually Fine", value: 2 },
-      { label: "Often Tired", value: 4 },
-      { label: "Chronically Fatigued", value: 5 }
-    ]
-  },
-  {
+    id: "balance",
     category: "Work-Life Balance",
-    scenario: "Academic work often follows you home through WhatsApp groups, emails, and student queries even on weekends.",
-    question: "How frequently do work-related notifications interrupt your personal or family time?",
-    options: [
-      { label: "Never", value: 1 },
-      { label: "Rarely", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Often", value: 4 },
-      { label: "Always", value: 5 }
-    ]
+    question: "How well are you able to maintain work-life balance?",
+    options: ["Very well", "Manageable", "Difficult", "Very difficult"]
   },
   {
-    category: "Work-Life Balance",
-    scenario: "Major events like college fests, accreditation visits, or extra classes may require you to sacrifice personal holidays.",
-    question: "How often have you had to miss important family events or social gatherings due to college work?",
-    options: [
-      { label: "Never", value: 1 },
-      { label: "Rarely", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Often", value: 4 },
-      { label: "Always", value: 5 }
-    ]
-  },
-  {
-    category: "Work-Life Balance",
-    scenario: "Finding time for hobbies or relaxation seems difficult when the semester is in full swing.",
-    question: "How many hours per week do you dedicate to self-care or personal relaxation?",
-    options: [
-      { label: "10+ hours", value: 1 },
-      { label: "5-10 hours", value: 2 },
-      { label: "2-5 hours", value: 4 },
-      { label: "Less than 2 hours", value: 5 }
-    ]
-  },
-  {
+    id: "satisfaction",
     category: "Job Satisfaction",
-    scenario: "You put in hard work to deliver quality education, but sometimes feel the salary and appraisals don't match the effort.",
-    question: "How satisfied are you with your current salary and institutional recognition?",
-    options: [
-      { label: "Very Satisfied", value: 1 },
-      { label: "Satisfied", value: 2 },
-      { label: "Neutral", value: 3 },
-      { label: "Dissatisfied", value: 4 },
-      { label: "Very Dissatisfied", value: 5 }
-    ]
+    question: "How satisfied are you with your job currently?",
+    options: ["Very satisfied", "Neutral", "Dissatisfied", "Very dissatisfied"]
   },
   {
-    category: "Job Satisfaction",
-    scenario: "After years in the same role, the repetitive nature of the curriculum might make the job feel stagnant.",
-    question: "How often do you feel enthusiastic and excited about teaching your subjects?",
-    options: [
-      { label: "Always", value: 1 },
-      { label: "Often", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Rarely", value: 4 },
-      { label: "Never", value: 5 }
-    ]
-  },
-  {
-    category: "Job Satisfaction",
-    scenario: "The competitive nature of academia often creates pressure to constantly publish papers or get grants.",
-    question: "How often do you feel that your work as an educator has a meaningful impact on students' lives?",
-    options: [
-      { label: "Always", value: 1 },
-      { label: "Usually", value: 2 },
-      { label: "Sometimes", value: 4 },
-      { label: "Rarely/Never", value: 5 }
-    ]
-  },
-  {
+    id: "support",
     category: "Institutional Support",
-    scenario: "Dealing with departmental politics or lack of transparency in administration can add unnecessary hidden stress.",
-    question: "How would you rate the level of transparency and support from your HOD or Management?",
-    options: [
-      { label: "Excellent", value: 1 },
-      { label: "Good", value: 2 },
-      { label: "Average", value: 3 },
-      { label: "Poor", value: 4 },
-      { label: "Very Polarized", value: 5 }
-    ]
-  },
-  {
-    category: "Institutional Support",
-    scenario: "Conducting research or innovative labs requires proper infrastructure, funding, and timely approvals.",
-    question: "How frequently do you feel that lack of resources (lab equipment/funding) hinders your work?",
-    options: [
-      { label: "Never", value: 1 },
-      { label: "Rarely", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Often", value: 4 },
-      { label: "Always", value: 5 }
-    ]
-  },
-  {
-    category: "Institutional Support",
-    scenario: "In times of personal emergency or work crisis, having supportive colleagues and clear policies makes a difference.",
-    question: "How often do you feel that your institution cares about your mental and physical well-being?",
-    options: [
-      { label: "Always", value: 1 },
-      { label: "Often", value: 2 },
-      { label: "Sometimes", value: 3 },
-      { label: "Rarely", value: 4 },
-      { label: "Never", value: 5 }
-    ]
+    question: "Do you feel supported by your institution/colleagues?",
+    options: ["Strongly supported", "Moderately supported", "Slightly supported", "Not supported"]
   }
 ];
 
@@ -249,35 +74,30 @@ const Assessment = () => {
 
   const handleSubmit = async () => {
     setLoading(true);
-    // Generate feature scores
-    const categories = [
-      "Teaching Workload",
-      "Mental Stress",
-      "Sleep & Physical Health",
-      "Work-Life Balance",
-      "Job Satisfaction",
-      "Institutional Support"
-    ];
+    
+    const mapping = {
+      workload: { "1-2": 1, "3-4": 2, "5-6": 3, "7+": 4 },
+      stress: { "Rarely": 1, "Sometimes": 2, "Often": 3, "Always": 4 },
+      sleep: { "Very good": 1, "Good": 2, "Poor": 3, "Very poor": 4 },
+      balance: { "Very well": 1, "Manageable": 2, "Difficult": 3, "Very difficult": 4 },
+      satisfaction: { "Very satisfied": 1, "Neutral": 2, "Dissatisfied": 3, "Very dissatisfied": 4 },
+      support: { "Strongly supported": 1, "Moderately supported": 2, "Slightly supported": 3, "Not supported": 4 }
+    };
 
-    const categoryScores = {};
-    categories.forEach((cat, index) => {
-      const catStartIndex = index * 3;
-      const q1 = answers[catStartIndex] || 3;
-      const q2 = answers[catStartIndex + 1] || 3;
-      const q3 = answers[catStartIndex + 2] || 3;
-      
-      const avg = (q1 + q2 + q3) / 3;
-      categoryScores[cat] = avg;
-    });
+    const getScore = (index) => {
+      const question = assessmentQuestions[index];
+      const answer = answers[index];
+      return mapping[question.id][answer];
+    };
 
     try {
       const payload = {
-        workload: categoryScores["Teaching Workload"],
-        stress: categoryScores["Mental Stress"],
-        sleep: categoryScores["Sleep & Physical Health"],
-        balance: categoryScores["Work-Life Balance"],
-        satisfaction: categoryScores["Job Satisfaction"],
-        support: categoryScores["Institutional Support"],
+        workload: getScore(0),
+        stress: getScore(1),
+        sleep: getScore(2),
+        balance: getScore(3),
+        satisfaction: getScore(4),
+        support: getScore(5),
         age: user?.age || 35,
         experience: user?.experience || 10
       };
@@ -286,9 +106,8 @@ const Assessment = () => {
         headers: { Authorization: `Bearer ${tokens.access}` }
       });
       
-      // Store raw scores + prediction metadata in localStorage for results page
       const resultData = {
-        ...response.data, // burnout_index, risk_level, factors
+        ...response.data,
         teaching_workload: payload.workload,
         mental_stress: payload.stress,
         sleep_physical_health: payload.sleep,
@@ -362,9 +181,6 @@ const Assessment = () => {
                     {currentQ.category}
                   </span>
                   <div className="pt-4 space-y-4">
-                    <p className="text-text-muted italic leading-relaxed text-lg border-l-2 border-primary/30 pl-4">
-                      "{currentQ.scenario}"
-                    </p>
                     <h3 className="text-2xl font-bold text-white leading-tight">
                       {currentQ.question}
                     </h3>
@@ -374,18 +190,18 @@ const Assessment = () => {
                 <div className="grid gap-3">
                   {currentQ.options.map((opt) => (
                     <button
-                      key={opt.value}
-                      onClick={() => handleOptionSelect(opt.value)}
+                      key={opt}
+                      onClick={() => handleOptionSelect(opt)}
                       className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 flex items-center justify-between group/opt ${
-                        answers[currentStep] === opt.value
+                        answers[currentStep] === opt
                         ? 'bg-primary/20 border-primary shadow-[0_0_20px_rgba(99,102,241,0.3)] scale-[1.02]'
                         : 'bg-white/5 border-white/10 hover:border-primary/50 hover:bg-white/10'
                       }`}
                     >
-                      <span className={`font-semibold ${answers[currentStep] === opt.value ? 'text-white' : 'text-text-muted group-hover/opt:text-white'}`}>
-                        {opt.label}
+                      <span className={`font-semibold ${answers[currentStep] === opt ? 'text-white' : 'text-text-muted group-hover/opt:text-white'}`}>
+                        {opt}
                       </span>
-                      {answers[currentStep] === opt.value && (
+                      {answers[currentStep] === opt && (
                         <motion.div 
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}

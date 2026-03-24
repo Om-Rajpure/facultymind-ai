@@ -245,7 +245,7 @@ const AssessmentResult = () => {
                             pointLabels: { color: '#94a3b8', font: { size: 10, weight: 'bold' } },
                             ticks: { display: false },
                             suggestedMin: 0,
-                            suggestedMax: 5
+                            suggestedMax: 4
                           }
                         },
                         plugins: { legend: { display: false } },
@@ -268,7 +268,7 @@ const AssessmentResult = () => {
                         <span className="text-xs font-semibold text-text-muted">{factor.label}</span>
                         <div className="flex items-center gap-3">
                           <div className="h-1.5 w-20 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-primary" style={{ width: `${(factor.score / 5) * 100}%` }}></div>
+                            <div className="h-full bg-primary" style={{ width: `${(factor.score / 4) * 100}%` }}></div>
                           </div>
                           <span className="text-xs font-black text-white">{factor.score.toFixed(1)}</span>
                         </div>

@@ -14,12 +14,12 @@ def predict_burnout_view(request):
     data = request.data
     try:
         features = [
-            float(data.get('workload', 3.0)),
-            float(data.get('stress', 3.0)),
-            float(data.get('sleep', 3.0)),
-            float(data.get('balance', 3.0)),
-            float(data.get('satisfaction', 3.0)),
-            float(data.get('support', 3.0)),
+            float(data.get('workload', 2.5)),
+            float(data.get('stress', 2.5)),
+            float(data.get('sleep', 2.5)),
+            float(data.get('balance', 2.5)),
+            float(data.get('satisfaction', 2.5)),
+            float(data.get('support', 2.5)),
             int(data.get('age', 35)),
             int(data.get('experience', 10))
         ]

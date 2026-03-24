@@ -37,9 +37,9 @@ def predict_burnout(features):
         (satisfaction * 0.10)
     )
     
-    # Scale from 1-5 to 0-100
-    # (raw_index - 1) / 4 * 100
-    burnout_index = round(((raw_index - 1) / 4) * 100)
+    # Scale from 1-4 to 0-100
+    # (raw_index - 1) / 3 * 100
+    burnout_index = round(((raw_index - 1) / 3) * 100)
     
     # Identify important factors (those with highest scores)
     factor_names = ["workload", "stress", "sleep", "balance", "satisfaction", "support"]
