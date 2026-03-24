@@ -20,8 +20,14 @@ const AdminAI = () => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
+    if (!tokens || !tokens.access) {
+      console.log("⛔ Tokens not ready (AdminAI)");
+      return;
+    }
+
+    console.log("✅ Tokens ready, calling AI context API");
     fetchContext();
-  }, []);
+  }, [tokens]);
 
   const fetchContext = async () => {
     try {

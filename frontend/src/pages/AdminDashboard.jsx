@@ -59,8 +59,14 @@ const AdminDashboard = () => {
   const [workspaceData, setWorkspaceData] = useState(null);
 
   useEffect(() => {
+    if (!tokens || !tokens.access) {
+      console.log("⛔ Tokens not ready (AdminDashboard)");
+      return;
+    }
+
+    console.log("✅ Tokens ready, calling admin API");
     fetchAdminData();
-  }, []);
+  }, [tokens]);
 
   const fetchAdminData = async () => {
     try {

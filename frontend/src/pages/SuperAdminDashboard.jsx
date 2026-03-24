@@ -37,6 +37,7 @@ const StatCard = ({ title, value, icon: Icon, color }) => (
 );
 
 const SuperAdminDashboard = () => {
+  const { user, tokens } = useAuth();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,13 +50,22 @@ const SuperAdminDashboard = () => {
   });
 
   useEffect(() => {
+    if (!tokens || !tokens.access) {
+      console.log("⛔ Tokens not ready (SuperAdminDashboard)");
+      return;
+    }
+
+    console.log("✅ Tokens ready, calling superadmin API");
     fetchUsers();
-  }, []);
+  }, [tokens]);
 
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('http://localhost:8000/api/accounts/superadmin/users/');
+      console.log("API URL:", API_BASE_URL);
+      const response = await axios.get(`${API_BASE_URL}/accounts/superadmin/users/`, {
+        headers: { Authorization: `Bearer ${tokens.access}` }
+      });
       console.log("Super Admin Users Data:", response.data);
       
       const userData = Array.isArray(response.data) ? response.data : [];
@@ -83,7 +93,9 @@ const SuperAdminDashboard = () => {
     
     try {
       console.log("Deleting user:", userId);
-      await axios.delete(`http://localhost:8000/api/accounts/superadmin/delete-user/${userId}/`);
+      await axios.delete(`${API_BASE_URL}/accounts/superadmin/delete-user/${userId}/`, {
+        headers: { Authorization: `Bearer ${tokens.access}` }
+      });
       
       // Update local state
       setUsers(prev => prev.filter(user => user.id !== userId));

@@ -39,31 +39,40 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
 const AssessmentResult = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, tokens } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchResults = async () => {
-      const { tokens } = useAuth();
-      if (!tokens) {
-        setLoading(false);
-        return;
-      }
+  console.log("USER:", user);
+  console.log("TOKENS:", tokens);
+  console.log("LOADING:", loading);
 
+  useEffect(() => {
+    if (!tokens || !tokens.access) {
+      console.log("⛔ Tokens not ready");
+      return;
+    }
+
+    console.log("✅ Tokens ready, calling API");
+    console.log("API URL:", API_BASE_URL);
+
+    const fetchResults = async () => {
       try {
+        setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/assessments/`, {
           headers: { Authorization: `Bearer ${tokens.access}` }
         });
+        console.log("✅ API RESPONSE:", response.data);
         setResults(response.data);
       } catch (error) {
-        console.error("Error fetching assessments:", error);
+        console.error("❌ API ERROR:", error);
       } finally {
+        console.log("✅ Stopping loader");
         setLoading(false);
       }
     };
 
     fetchResults();
-  }, [user]);
+  }, [tokens]);
 
   if (loading) {
     return (

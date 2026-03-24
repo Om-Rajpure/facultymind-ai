@@ -14,11 +14,19 @@ const Dashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
+  console.log("USER:", user);
+  console.log("TOKENS:", tokens);
+  console.log("API URL:", API_BASE_URL);
+
   useEffect(() => {
-    if (user?.email) {
-      fetchNotifications();
+    if (!tokens || !tokens.access) {
+      console.log("⛔ Tokens not ready (Dashboard)");
+      return;
     }
-  }, [user]);
+    
+    console.log("✅ Tokens ready, calling notifications API");
+    fetchNotifications();
+  }, [tokens]);
 
   const fetchNotifications = async () => {
     try {
