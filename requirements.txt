@@ -1,0 +1,15 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+django-allauth
+django-environ
+gunicorn
+psycopg2-binary
+python-dotenv
+google-generativeai
+joblib
+numpy
+scikit-learn
+pandas
+requests
