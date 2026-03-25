@@ -17,7 +17,12 @@ def generate_ai_response(prompt):
         return None
 
     client = genai.Client(api_key=api_key)
-    models_to_try = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-flash-lite-latest"]
+    models_to_try = [
+        "gemini-2.0-flash", 
+        "gemini-1.5-flash", 
+        "gemini-2.0-flash-lite", 
+        "gemini-flash-lite-latest"
+    ]
     
     for model_name in models_to_try:
         max_retries = 2
@@ -41,9 +46,11 @@ def generate_ai_response(prompt):
                 if "429" in err_str or "quota" in err_str.lower():
                     if attempt < max_retries - 1:
                         wait_time = 2 ** (attempt + 1)
+                        print(f"DEBUG: Quota hit for {model_name}, retrying in {wait_time}s...")
                         time.sleep(wait_time)
                         continue
                 
+                print(f"ERROR: Model {model_name} failed: {err_str}")
                 # If it's a 429 and we've exhausted retries, try the next model
                 break
             

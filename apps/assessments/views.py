@@ -69,12 +69,18 @@ def start_chat_session(request):
     name = request.user.get_full_name() or request.user.username
 
     # Get most recent session or create a new one
-    session, created = ChatSession.objects.get_or_create(
+    session = ChatSession.objects.filter(
         user=request.user,
-        user_email=email,
-        defaults={'user_name': name}
-    )
-    if not created:
+        user_email=email
+    ).order_by('-last_active').first()
+    
+    if not session:
+        session = ChatSession.objects.create(
+            user=request.user,
+            user_email=email,
+            user_name=name
+        )
+    else:
         session.user_name = name
         session.save()
 
@@ -241,7 +247,6 @@ def chat_unified(request):
         }, status=status.HTTP_200_OK)
 
     except Exception as e:
-        print(f"Chat API Error: {str(e)}")
         import traceback
         traceback.print_exc()
         return Response({

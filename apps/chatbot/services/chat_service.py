@@ -10,7 +10,9 @@ def process_chat_message(email, message, session_id=None):
     """
     # 1. Resolve or Create Session
     if not session_id:
-        session, _ = ChatSession.objects.get_or_create(user_email=email)
+        session = ChatSession.objects.filter(user_email=email).order_by('-last_active').first()
+        if not session:
+            session = ChatSession.objects.create(user_email=email)
         session_id = session.id
     
     # 2. Build Context
