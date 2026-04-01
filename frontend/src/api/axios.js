@@ -1,9 +1,12 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://facultymind-ai.onrender.com/api';
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+console.log("API URL:", BASE_URL); // debug
+console.log("FINAL API URL:", import.meta.env.VITE_API_URL);
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

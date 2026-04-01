@@ -15,7 +15,7 @@ const Dashboard = () => {
 
   console.log("USER:", user);
   console.log("TOKENS:", tokens);
-  console.log("API URL:", API_BASE_URL);
+  console.log("API URL:", import.meta.env.VITE_API_URL);
 
   useEffect(() => {
     if (!tokens || !tokens.access) {

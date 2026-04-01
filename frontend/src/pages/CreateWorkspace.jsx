@@ -17,7 +17,7 @@ const CreateWorkspace = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     setLoading(true);
-    console.log("Creating workspace:", name, "API URL:", API_BASE_URL);
+    console.log("Creating workspace:", name, "API URL:", import.meta.env.VITE_API_URL);
     try {
       const response = await api.post('/accounts/workspace/create/', 
         { name }

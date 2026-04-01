@@ -52,7 +52,7 @@ const AssessmentResult = () => {
     }
 
     console.log("✅ Tokens ready, calling API");
-    console.log("API URL:", API_BASE_URL);
+    console.log("API URL:", import.meta.env.VITE_API_URL);
 
     const fetchResults = async () => {
       try {

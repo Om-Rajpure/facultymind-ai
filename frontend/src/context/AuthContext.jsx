@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useUser, useAuth as useClerkAuth } from "@clerk/react";
-import axios from 'axios';
+import api from '../api/axios';
 
 const AuthContext = createContext();
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
 
 export const AuthProvider = ({ children }) => {
   const { isLoaded: isClerkLoaded, user: clerkUser, isSignedIn } = useUser();
@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
         try {
           setLoading(true);
           console.log("AUTH DEBUG → Syncing with backend...");
-          const response = await axios.post(`${API_BASE_URL}/accounts/sync-user/`, {
+          const response = await api.post("/accounts/sync-user/", {
             clerk_id: clerkUser.id,
             email: clerkUser.primaryEmailAddress?.emailAddress,
             name: clerkUser.fullName || clerkUser.username || '',
