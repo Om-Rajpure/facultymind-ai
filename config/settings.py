@@ -206,3 +206,6 @@ if not DEBUG:
 
 # Google Gemini API Key
 GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
+
+# Admin Panel Access Password
+ADMIN_PANEL_PASSWORD = env('ADMIN_PANEL_PASSWORD', default='0m@123')

@@ -16,11 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from apps.accounts.views import VerifyAdminAccessView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/accounts/', include('apps.accounts.urls')),
+    path('api/admin/verify-password/', VerifyAdminAccessView.as_view(), name='verify_admin_password_global'),
     path('api/workspaces/', include('apps.workspaces.urls')),
     path('api/', include('apps.assessments.urls')),
     path('accounts/', include('allauth.urls')),

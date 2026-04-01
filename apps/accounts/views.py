@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -133,10 +134,9 @@ class VerifyAdminAccessView(APIView):
 
     def post(self, request):
         password = request.data.get('password')
-        admin_pass = os.getenv('ADMIN_TRAPDOOR_PASSWORD', 'om@123')
-        if password == admin_pass:
+        if password == settings.ADMIN_PANEL_PASSWORD:
             return Response({"success": True}, status=status.HTTP_200_OK)
-        return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"success": False, "error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
 
 class SuperAdminUserListView(APIView):
     permission_classes = [IsAuthenticated]  # Require standard auth first
