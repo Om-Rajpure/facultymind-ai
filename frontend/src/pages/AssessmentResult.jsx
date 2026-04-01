@@ -57,7 +57,7 @@ const AssessmentResult = () => {
     const fetchResults = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/assessments/');
+        const response = await api.get('/api/assessments/');
         console.log("✅ API RESPONSE:", response.data);
         setResults(response.data);
       } catch (error) {

@@ -12,7 +12,7 @@ const RoleSelection = () => {
 
   const handleRoleSelect = async (role) => {
     try {
-      await api.post('/accounts/set-role/', { role });
+      await api.post('/api/accounts/set-role/', { role });
       console.log("AUTH FLOW: role selected", role);
       updateProfile({ role });
       navigate('/profile-setup');

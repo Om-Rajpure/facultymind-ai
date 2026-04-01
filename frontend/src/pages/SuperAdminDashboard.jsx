@@ -63,7 +63,7 @@ const SuperAdminDashboard = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get('/accounts/superadmin/users/');
+      const response = await api.get('/api/accounts/superadmin/users/');
       console.log("Super Admin Users Data:", response.data);
       
       const userData = Array.isArray(response.data) ? response.data : [];
@@ -90,7 +90,7 @@ const SuperAdminDashboard = () => {
     if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
     
     try {
-      await api.delete(`/accounts/superadmin/delete-user/${userId}/`);
+      await api.delete(`/api/accounts/superadmin/delete-user/${userId}/`);
       
       // Update local state
       setUsers(prev => prev.filter(user => user.id !== userId));

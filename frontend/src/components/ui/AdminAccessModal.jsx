@@ -16,7 +16,7 @@ const AdminAccessModal = ({ isOpen, onClose }) => {
     setError('');
 
     try {
-      const response = await api.post('/accounts/admin/verify-access/', {
+      const response = await api.post('/api/accounts/admin/verify-access/', {
         password: password
       });
 

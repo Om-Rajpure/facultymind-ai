@@ -30,7 +30,7 @@ const AdminAI = () => {
 
   const fetchContext = async () => {
     try {
-      const res = await api.get('/admin/ai-context/');
+      const res = await api.get('/api/admin/ai-context/');
       setInstitutionalContext(res.data.context);
     } catch (error) {
       console.error("Error fetching context:", error);
@@ -58,7 +58,7 @@ const AdminAI = () => {
       // We'll use the existing chat endpoint but prepend the institutional context
       const fullPrompt = `INSTITUTIONAL DATA CONTEXT:\n${institutionalContext}\n\nUSER QUESTION: ${userMsg}`;
       
-      const res = await api.post('/chat/', {
+      const res = await api.post('/api/chat/', {
         message: fullPrompt
       });
 

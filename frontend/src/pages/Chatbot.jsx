@@ -76,8 +76,8 @@ export default function ChatbotPage() {
     setLoading(true);
     try {
       const [sessionRes, remindersRes] = await Promise.all([
-        api.post('/chat/start/', {}),
-        api.get('/reminders/list/'),
+        api.post('/api/chat/start/', {}),
+        api.get('/api/reminders/list/'),
       ]);
       setSessionId(sessionRes.data.session_id);
       setMessages(sessionRes.data.messages || []);
@@ -102,13 +102,13 @@ export default function ChatbotPage() {
     setTyping(true);
 
     try {
-      const res = await api.post('/chat/message/', { session_id: sessionId, message: msg });
+      const res = await api.post('/api/chat/message/', { session_id: sessionId, message: msg });
       const bot = res.data.bot_message;
       setMessages(prev => [...prev, { id: bot.id, role: 'bot', content: bot.content, timestamp: bot.timestamp }]);
       if (res.data.suggested_chips?.length) setChips(res.data.suggested_chips);
       if (res.data.reminder_created) {
         setReminderCount(c => c + 1);
-        const remindersRes = await api.get('/reminders/list/');
+        const remindersRes = await api.get('/api/reminders/list/');
         setReminders(remindersRes.data || []);
       }
     } catch {

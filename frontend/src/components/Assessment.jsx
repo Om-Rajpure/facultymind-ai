@@ -101,7 +101,7 @@ const Assessment = () => {
         experience: user?.experience || 10
       };
 
-      const response = await api.post('/predict-burnout/', payload);
+      const response = await api.post('/api/predict-burnout/', payload);
       
       const resultData = {
         ...response.data,

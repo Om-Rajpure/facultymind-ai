@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
         try {
           setLoading(true);
           console.log("AUTH DEBUG → Syncing with backend...");
-          const response = await api.post("/accounts/sync-user/", {
+          const response = await api.post("/api/accounts/sync-user/", {
             clerk_id: clerkUser.id,
             email: clerkUser.primaryEmailAddress?.emailAddress,
             name: clerkUser.fullName || clerkUser.username || '',

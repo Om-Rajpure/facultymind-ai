@@ -80,7 +80,7 @@ export default function ChatWidget() {
   const initSession = async () => {
     setLoading(true);
     try {
-      const res = await api.post('/chat/start/', {});
+      const res = await api.post('/api/chat/start/', {});
       setSessionId(res.data.session_id);
       setMessages(res.data.messages || []);
     } catch {
@@ -106,7 +106,7 @@ export default function ChatWidget() {
     try {
       let botContent, newChips;
       // Unified Gemini-powered chat API
-      const res = await api.post('/chat/', { 
+      const res = await api.post('/api/chat/', { 
         message: msg 
       });
       

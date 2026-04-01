@@ -74,11 +74,11 @@ const AdminDashboard = () => {
       console.log("DEBUG: AdminDashboard - Role:", user?.role);
       
       const [overviewRes, deptRes, highRiskRes, facultyRes, workspaceRes] = await Promise.all([
-        api.get('/admin/overview/'),
-        api.get('/admin/department-analytics/'),
-        api.get('/admin/high-risk/'),
-        api.get('/admin/faculty/'),
-        api.get('/workspaces/my-workspace/')
+        api.get('/api/admin/overview/'),
+        api.get('/api/admin/department-analytics/'),
+        api.get('/api/admin/high-risk/'),
+        api.get('/api/admin/faculty/'),
+        api.get('/api/workspaces/my-workspace/')
       ]);
       
       console.log("DEBUG: AdminDashboard - Workspace API Response:", workspaceRes.data);
@@ -96,7 +96,7 @@ const AdminDashboard = () => {
 
   const fetchFacultyHistory = async (id) => {
     try {
-      const res = await api.get(`/admin/faculty/${id}/history/`);
+      const res = await api.get(`/api/admin/faculty/${id}/history/`);
       setFacultyHistory(res.data);
       setIsHistoryOpen(true);
     } catch (error) {
@@ -108,7 +108,7 @@ const AdminDashboard = () => {
     if (!messageText.trim()) return;
     setSendingMessage(true);
     try {
-      await api.post('/admin/send-message/', {
+      await api.post('/api/admin/send-message/', {
         teacher_id: selectedFaculty.id,
         message: messageText
       });

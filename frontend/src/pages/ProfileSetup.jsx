@@ -26,7 +26,7 @@ const ProfileSetup = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post('/accounts/setup-profile/', formData);
+      await api.post('/api/accounts/setup-profile/', formData);
       console.log("AUTH FLOW: profile setup complete", formData);
       updateProfile(formData);
       

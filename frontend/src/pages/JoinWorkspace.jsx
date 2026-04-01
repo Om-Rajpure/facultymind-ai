@@ -23,7 +23,7 @@ const JoinWorkspace = () => {
     
     try {
       // 4. FRONTEND FIX: Send request with normalized code and correct endpoint
-      const response = await api.post('/workspaces/join/', 
+      const response = await api.post('/api/workspaces/join/', 
         { join_code: cleanedCode }
       );
       

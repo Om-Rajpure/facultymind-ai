@@ -29,7 +29,7 @@ const Dashboard = () => {
 
   const fetchNotifications = async () => {
     try {
-      const res = await api.get('/notifications/');
+      const res = await api.get('/api/notifications/');
       setNotifications(res.data);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -38,7 +38,7 @@ const Dashboard = () => {
 
   const markAsRead = async (id) => {
     try {
-      await api.post(`/notifications/${id}/read/`, {});
+      await api.post(`/api/notifications/${id}/read/`, {});
       setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch (error) {
       console.error("Error marking as read:", error);

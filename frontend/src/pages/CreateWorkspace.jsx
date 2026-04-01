@@ -19,7 +19,7 @@ const CreateWorkspace = () => {
     setLoading(true);
     console.log("Creating workspace:", name, "API URL:", import.meta.env.VITE_API_URL);
     try {
-      const response = await api.post('/accounts/workspace/create/', 
+      const response = await api.post('/api/accounts/workspace/create/', 
         { name }
       );
       console.log("Workspace created successfully:", response.data);
