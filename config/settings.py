@@ -30,14 +30,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-r^!t^a7@x=e54fvv*h0qtk!753$m2oe33+3cv5o6=_*%+&c)lx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG', default='True') == 'True'
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
-    'facultymind-ai.onrender.com',
-    'localhost',
-    '127.0.0.1',
-    '*'
+    'facultymind-ai.onrender.com'
 ])
+
+# For local development:
+if DEBUG:
+    ALLOWED_HOSTS += ['localhost', '127.0.0.1', '*']
 
 
 # Application definition
@@ -140,7 +141,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=os.getenv('DATABASE_URL', f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
         conn_max_age=600
     )
 }
@@ -181,7 +182,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
