@@ -1,11 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { UserCircle, ShieldCheck } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const RoleSelection = () => {
   const { tokens, updateProfile } = useAuth();
@@ -13,9 +12,7 @@ const RoleSelection = () => {
 
   const handleRoleSelect = async (role) => {
     try {
-      await axios.post(`${API_BASE_URL}/accounts/set-role/`, { role }, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
-      });
+      await api.post('/accounts/set-role/', { role });
       console.log("AUTH FLOW: role selected", role);
       updateProfile({ role });
       navigate('/profile-setup');

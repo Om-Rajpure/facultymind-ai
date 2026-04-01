@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { User, Briefcase, Building2, Calendar, Award } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const ProfileSetup = () => {
   const { user, tokens, updateProfile } = useAuth();
@@ -27,9 +26,7 @@ const ProfileSetup = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/accounts/setup-profile/`, formData, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
-      });
+      await api.post('/accounts/setup-profile/', formData);
       console.log("AUTH FLOW: profile setup complete", formData);
       updateProfile(formData);
       

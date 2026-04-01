@@ -2,11 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Send, User, Bot, Sparkles, ArrowLeft, Info, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Section from '../components/ui/Section';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const AdminAI = () => {
   const navigate = useNavigate();
@@ -31,9 +30,7 @@ const AdminAI = () => {
 
   const fetchContext = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/admin/ai-context/`, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
-      });
+      const res = await api.get('/admin/ai-context/');
       setInstitutionalContext(res.data.context);
     } catch (error) {
       console.error("Error fetching context:", error);
@@ -61,10 +58,8 @@ const AdminAI = () => {
       // We'll use the existing chat endpoint but prepend the institutional context
       const fullPrompt = `INSTITUTIONAL DATA CONTEXT:\n${institutionalContext}\n\nUSER QUESTION: ${userMsg}`;
       
-      const res = await axios.post(`${API_BASE_URL}/chat/`, {
+      const res = await api.post('/chat/', {
         message: fullPrompt
-      }, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
       });
 
       setMessages(prev => [...prev, { role: 'bot', content: res.data.reply }]);

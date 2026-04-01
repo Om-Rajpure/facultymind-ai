@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../api/axios';
 import { UserPlus, ArrowRight, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -23,9 +23,8 @@ const JoinWorkspace = () => {
     
     try {
       // 4. FRONTEND FIX: Send request with normalized code and correct endpoint
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/workspaces/join/`, 
-        { join_code: cleanedCode },
-        { headers: { Authorization: `Bearer ${tokens.access}` } }
+      const response = await api.post('/workspaces/join/', 
+        { join_code: cleanedCode }
       );
       
       console.log("JOIN SUCCESS:", response.data);

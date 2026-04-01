@@ -3,10 +3,8 @@ import { motion } from 'framer-motion';
 import { Bot, Send, BellPlus, Loader2, TrendingUp, Clock, AlertCircle, CheckCircle, Info, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
-const API = API_BASE_URL;
 
 const QUICK_CHIPS = [
   'Explain my burnout score',
@@ -77,10 +75,9 @@ export default function ChatbotPage() {
   const initSession = async () => {
     setLoading(true);
     try {
-      const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
       const [sessionRes, remindersRes] = await Promise.all([
-        axios.post(`${API}/chat/start/`, {}, config),
-        axios.get(`${API}/reminders/list/`, config),
+        api.post('/chat/start/', {}),
+        api.get('/reminders/list/'),
       ]);
       setSessionId(sessionRes.data.session_id);
       setMessages(sessionRes.data.messages || []);
@@ -105,14 +102,13 @@ export default function ChatbotPage() {
     setTyping(true);
 
     try {
-      const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
-      const res = await axios.post(`${API}/chat/message/`, { session_id: sessionId, message: msg }, config);
+      const res = await api.post('/chat/message/', { session_id: sessionId, message: msg });
       const bot = res.data.bot_message;
       setMessages(prev => [...prev, { id: bot.id, role: 'bot', content: bot.content, timestamp: bot.timestamp }]);
       if (res.data.suggested_chips?.length) setChips(res.data.suggested_chips);
       if (res.data.reminder_created) {
         setReminderCount(c => c + 1);
-        const remindersRes = await axios.get(`${API}/reminders/list/`, config);
+        const remindersRes = await api.get('/reminders/list/');
         setReminders(remindersRes.data || []);
       }
     } catch {

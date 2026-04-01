@@ -16,7 +16,7 @@ import {
   Search,
   ArrowLeft
 } from 'lucide-react';
-import axios from 'axios';
+import api from '../api/axios';
 import { 
   BarChart, 
   Bar, 
@@ -34,7 +34,6 @@ import {
 import Section from '../components/ui/Section';
 import WorkspaceCodeCard from '../components/ui/WorkspaceCodeCard';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const AdminDashboard = () => {
   const { user, tokens } = useAuth();
@@ -74,13 +73,12 @@ const AdminDashboard = () => {
       console.log("DEBUG: AdminDashboard - User:", user);
       console.log("DEBUG: AdminDashboard - Role:", user?.role);
       
-      const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
       const [overviewRes, deptRes, highRiskRes, facultyRes, workspaceRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/admin/overview/`, config),
-        axios.get(`${API_BASE_URL}/admin/department-analytics/`, config),
-        axios.get(`${API_BASE_URL}/admin/high-risk/`, config),
-        axios.get(`${API_BASE_URL}/admin/faculty/`, config),
-        axios.get(`${API_BASE_URL.replace('/api', '')}/api/workspaces/my-workspace/`, config)
+        api.get('/admin/overview/'),
+        api.get('/admin/department-analytics/'),
+        api.get('/admin/high-risk/'),
+        api.get('/admin/faculty/'),
+        api.get('/workspaces/my-workspace/')
       ]);
       
       console.log("DEBUG: AdminDashboard - Workspace API Response:", workspaceRes.data);
@@ -98,9 +96,7 @@ const AdminDashboard = () => {
 
   const fetchFacultyHistory = async (id) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/admin/faculty/${id}/history/`, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
-      });
+      const res = await api.get(`/admin/faculty/${id}/history/`);
       setFacultyHistory(res.data);
       setIsHistoryOpen(true);
     } catch (error) {
@@ -112,11 +108,9 @@ const AdminDashboard = () => {
     if (!messageText.trim()) return;
     setSendingMessage(true);
     try {
-      await axios.post(`${API_BASE_URL}/admin/send-message/`, {
+      await api.post('/admin/send-message/', {
         teacher_id: selectedFaculty.id,
         message: messageText
-      }, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
       });
       setIsMessageOpen(false);
       setMessageText("");

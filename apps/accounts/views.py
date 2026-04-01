@@ -3,10 +3,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
+import os
 from .models import User
 from apps.workspaces.models import Workspace
 from apps.assessments.models import Institution, Department, AssessmentResult
 from .serializers import UserSerializer
+from .permissions import IsAdminRole, IsSuperAdmin
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class GoogleLoginView(APIView):
@@ -131,12 +133,13 @@ class VerifyAdminAccessView(APIView):
 
     def post(self, request):
         password = request.data.get('password')
-        if password == "om@123":
+        admin_pass = os.getenv('ADMIN_TRAPDOOR_PASSWORD', 'om@123')
+        if password == admin_pass:
             return Response({"success": True}, status=status.HTTP_200_OK)
         return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
 
 class SuperAdminUserListView(APIView):
-    permission_classes = [AllowAny]  # In a real app, this would be more restricted
+    permission_classes = [IsAuthenticated]  # Require standard auth first
 
     def get(self, request):
         print("Fetching all users for super admin")
@@ -161,7 +164,7 @@ class SuperAdminUserListView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 class DeleteUserView(APIView):
-    permission_classes = [AllowAny] # Protecting later with token
+    permission_classes = [IsSuperAdmin] # Only superusers can delete
 
     def delete(self, request, user_id):
         print(f"Deleting user: {user_id}")

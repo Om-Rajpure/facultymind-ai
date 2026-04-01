@@ -42,10 +42,9 @@ const assessmentQuestions = [
   }
 ];
 
-import axios from 'axios';
+import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const Assessment = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -102,9 +101,7 @@ const Assessment = () => {
         experience: user?.experience || 10
       };
 
-      const response = await axios.post(`${API_BASE_URL}/predict-burnout/`, payload, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
-      });
+      const response = await api.post('/predict-burnout/', payload);
       
       const resultData = {
         ...response.data,

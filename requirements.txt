@@ -13,3 +13,5 @@ numpy
 scikit-learn
 pandas
 requests
+dj-database-url
+whitenoise

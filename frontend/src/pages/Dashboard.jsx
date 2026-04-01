@@ -4,9 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { ClipboardList, History, ArrowRight, Bot, Bell, X, MessageCircle } from 'lucide-react';
 import Section from '../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const Dashboard = () => {
   const { user, tokens } = useAuth();
@@ -30,9 +29,7 @@ const Dashboard = () => {
 
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/notifications/`, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
-      });
+      const res = await api.get('/notifications/');
       setNotifications(res.data);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -41,9 +38,7 @@ const Dashboard = () => {
 
   const markAsRead = async (id) => {
     try {
-      await axios.post(`${API_BASE_URL}/notifications/${id}/read/`, {}, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
-      });
+      await api.post(`/notifications/${id}/read/`, {});
       setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch (error) {
       console.error("Error marking as read:", error);

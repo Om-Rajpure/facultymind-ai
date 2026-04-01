@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, X, Lock, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/axios';
 
 const AdminAccessModal = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState('');
@@ -16,7 +16,7 @@ const AdminAccessModal = ({ isOpen, onClose }) => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:8000/api/accounts/admin/verify-access/', {
+      const response = await api.post('/accounts/admin/verify-access/', {
         password: password
       });
 

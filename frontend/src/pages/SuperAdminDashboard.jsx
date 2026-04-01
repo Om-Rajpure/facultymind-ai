@@ -18,7 +18,8 @@ import {
   Copy,
   Check
 } from 'lucide-react';
-import axios from 'axios';
+import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 const StatCard = ({ title, value, icon: Icon, color }) => (
   <motion.div 
@@ -62,10 +63,7 @@ const SuperAdminDashboard = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      console.log("API URL:", API_BASE_URL);
-      const response = await axios.get(`${API_BASE_URL}/accounts/superadmin/users/`, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
-      });
+      const response = await api.get('/accounts/superadmin/users/');
       console.log("Super Admin Users Data:", response.data);
       
       const userData = Array.isArray(response.data) ? response.data : [];
@@ -92,10 +90,7 @@ const SuperAdminDashboard = () => {
     if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
     
     try {
-      console.log("Deleting user:", userId);
-      await axios.delete(`${API_BASE_URL}/accounts/superadmin/delete-user/${userId}/`, {
-        headers: { Authorization: `Bearer ${tokens.access}` }
-      });
+      await api.delete(`/accounts/superadmin/delete-user/${userId}/`);
       
       // Update local state
       setUsers(prev => prev.filter(user => user.id !== userId));

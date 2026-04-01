@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../api/axios';
 import { Building2, ArrowRight, Copy, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,16 +13,14 @@ const CreateWorkspace = () => {
   const { setWorkspace, tokens } = useAuth();
   const navigate = useNavigate();
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
   const handleCreate = async (e) => {
     e.preventDefault();
     setLoading(true);
     console.log("Creating workspace:", name, "API URL:", API_BASE_URL);
     try {
-      const response = await axios.post(`${API_BASE_URL}/accounts/workspace/create/`, 
-        { name },
-        { headers: { Authorization: `Bearer ${tokens.access}` } }
+      const response = await api.post('/accounts/workspace/create/', 
+        { name }
       );
       console.log("Workspace created successfully:", response.data);
       setWorkspaceData(response.data);

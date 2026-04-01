@@ -2,10 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Bot, Loader2, BellPlus, Maximize2, Minimize2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../api/axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
-const API = API_BASE_URL;
 
 // Format bot messages: bold **text**, newlines
 function formatMessage(text) {
@@ -82,8 +80,7 @@ export default function ChatWidget() {
   const initSession = async () => {
     setLoading(true);
     try {
-      const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
-      const res = await axios.post(`${API}/chat/start/`, {}, config);
+      const res = await api.post('/chat/start/', {});
       setSessionId(res.data.session_id);
       setMessages(res.data.messages || []);
     } catch {
@@ -108,12 +105,10 @@ export default function ChatWidget() {
 
     try {
       let botContent, newChips;
-      const config = { headers: { Authorization: `Bearer ${tokens.access}` } };
-
       // Unified Gemini-powered chat API
-      const res = await axios.post(`${API}/chat/`, { 
+      const res = await api.post('/chat/', { 
         message: msg 
-      }, config);
+      });
       
       botContent = res.data.reply;
       newChips = res.data.suggestions;
