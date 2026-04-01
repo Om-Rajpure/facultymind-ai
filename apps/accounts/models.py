@@ -29,7 +29,7 @@ class User(AbstractUser):
         on_delete=models.SET_NULL,
         related_name='members'
     )
-    clerk_user_id = models.CharField(
+    clerk_id = models.CharField(
         max_length=255,
         unique=True,
         null=True,

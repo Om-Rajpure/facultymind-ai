@@ -10,6 +10,7 @@ from apps.workspaces.models import Workspace
 from apps.assessments.models import Institution, Department, AssessmentResult
 from .serializers import UserSerializer
 from .permissions import IsAdminRole, IsSuperAdmin
+from .authentication import ClerkAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class GoogleLoginView(APIView):
@@ -41,26 +42,55 @@ class GoogleLoginView(APIView):
         })
 
 class SyncUserView(APIView):
+    authentication_classes = [ClerkAuthentication]  # Force Clerk auth on this view
     permission_classes = [AllowAny]
 
     def post(self, request):
-        clerk_id = request.data.get('clerk_id')
-        email = request.data.get('email')
-        name = request.data.get('name', '')
-        
-        if not clerk_id or not email:
-            return Response({"error": "clerk_id and email are required"}, status=status.HTTP_400_BAD_REQUEST)
-            
+        print("🔄 SyncUserView CALLED")
+        print(f"🔄 request.user type: {type(request.user)}")
+        print(f"🔄 request.user: {request.user}")
+
+        # Determine clerk_id, email, name from either the JWT payload or request body
+        if isinstance(request.user, dict):
+            # User not in DB yet — extract from verified JWT payload
+            clerk_id = request.user.get("sub")
+            # Clerk JWT may not always include email — fall back to request body
+            email = request.user.get("email") or request.user.get("primary_email") or request.data.get("email", "")
+            name = request.data.get("name", "")
+            print(f"🔄 New user flow: clerk_id={clerk_id}, email={email}")
+        elif hasattr(request.user, 'clerk_id') and request.user.clerk_id:
+            # User already exists in DB — ClerkAuthentication returned a User instance
+            clerk_id = request.user.clerk_id
+            email = request.user.email
+            name = f"{request.user.first_name} {request.user.last_name}".strip()
+            print(f"🔄 Existing user flow: clerk_id={clerk_id}, email={email}")
+        else:
+            # Fallback: no auth header was sent, use request body
+            clerk_id = request.data.get('clerk_id')
+            email = request.data.get('email')
+            name = request.data.get('name', '')
+            print(f"🔄 Fallback flow: clerk_id={clerk_id}, email={email}")
+
+        if not clerk_id:
+            return Response({"error": "clerk_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not email:
+            email = request.data.get('email', '')
+
+        username = email.split('@')[0] if email else f"user_{clerk_id[:8]}"
+
         user, created = User.objects.get_or_create(
-            clerk_user_id=clerk_id,
+            clerk_id=clerk_id,
             defaults={
                 'email': email,
-                'username': email.split('@')[0],
+                'username': username,
                 'first_name': name.split(' ')[0] if ' ' in name else name,
                 'last_name': name.split(' ')[1] if ' ' in name else ''
             }
         )
-        
+
+        print(f"🔄 User: {user.username}, created: {created}")
+
         refresh = RefreshToken.for_user(user)
         return Response({
             'access': str(refresh.access_token),
@@ -77,6 +107,7 @@ class SyncUserView(APIView):
                 'institution': user.institution.name if user.institution else None
             }
         })
+
 
 class SetRoleView(APIView):
     permission_classes = [IsAuthenticated]
