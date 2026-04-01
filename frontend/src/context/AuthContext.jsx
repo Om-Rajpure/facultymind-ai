@@ -25,25 +25,44 @@ export const AuthProvider = ({ children }) => {
         try {
           setLoading(true);
           console.log("AUTH DEBUG → Syncing with backend...");
+          
+          // Get Clerk Token
+          const token = await getToken();
+          if (!token) {
+            console.error("AUTH DEBUG → No Clerk token available");
+            setLoading(false);
+            return;
+          }
+          console.log("AUTH DEBUG → Clerk Token obtained");
+
           const response = await api.post("/api/accounts/sync-user/", {
             clerk_id: clerkUser.id,
             email: clerkUser.primaryEmailAddress?.emailAddress,
             name: clerkUser.fullName || clerkUser.username || '',
+          }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           });
 
           console.log("AUTH DEBUG → Backend response:", response.data);
           const { user: backendUser, access, refresh } = response.data;
-          console.log("AUTH DEBUG → Backend User:", backendUser);
-          console.log("AUTH DEBUG → Role:", backendUser?.role);
-          console.log("AUTH DEBUG → Workspace:", backendUser?.workspace);
-          setUser(backendUser);
-          setTokens({ access, refresh });
           
-          // Store tokens in localStorage for axios interceptors if needed
-          localStorage.setItem('facultymind_access', access);
-          localStorage.setItem('facultymind_refresh', refresh);
+          if (backendUser) {
+            console.log("AUTH DEBUG → Backend User:", backendUser);
+            setUser(backendUser);
+            setTokens({ access, refresh });
+            
+            // Store tokens in localStorage for axios interceptors if needed
+            localStorage.setItem('facultymind_access', access);
+            localStorage.setItem('facultymind_refresh', refresh);
+          } else {
+            console.error("AUTH DEBUG → No user data in response");
+          }
         } catch (error) {
           console.error('AUTH DEBUG → Backend sync failed:', error);
+          // Stop loading loop even on error
+          setLoading(false);
         } finally {
           setLoading(false);
           console.log("AUTH DEBUG → loading set to false");
