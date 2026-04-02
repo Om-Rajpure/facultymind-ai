@@ -36,7 +36,7 @@ import WorkspaceCodeCard from '../components/ui/WorkspaceCodeCard';
 
 
 const AdminDashboard = () => {
-  const { user, tokens } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     total_teachers: 0,
     total_assessments: 0,
@@ -58,14 +58,8 @@ const AdminDashboard = () => {
   const [workspaceData, setWorkspaceData] = useState(null);
 
   useEffect(() => {
-    if (!tokens || !tokens.access) {
-      console.log("⛔ Tokens not ready (AdminDashboard)");
-      return;
-    }
-
-    console.log("✅ Tokens ready, calling admin API");
     fetchAdminData();
-  }, [tokens]);
+  }, []);
 
   const fetchAdminData = async () => {
     try {

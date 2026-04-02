@@ -10,7 +10,7 @@ const CreateWorkspace = () => {
   const [loading, setLoading] = useState(false);
   const [workspace, setWorkspaceData] = useState(null);
   const [copied, setCopied] = useState(false);
-  const { setWorkspace, tokens } = useAuth();
+  const { setWorkspace } = useAuth();
   const navigate = useNavigate();
 
 

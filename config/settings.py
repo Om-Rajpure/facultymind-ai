@@ -67,6 +67,9 @@ INSTALLED_APPS = [
     'apps.assessments',
 ]
 
+# 🔍 DEBUG: Print installed apps at startup
+print("🔍 DEBUG INSTALLED APPS:", INSTALLED_APPS)
+
 SITE_ID = 1
 
 MIDDLEWARE = [
@@ -81,6 +84,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
+
+# 🔍 DEBUG: Print middleware at startup
+print("🔍 DEBUG MIDDLEWARE:", MIDDLEWARE)
 
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -97,6 +103,10 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
+
+# 🔍 DEBUG: Print active authentication classes
+print("🔍 DEBUG AUTH CLASSES:", REST_FRAMEWORK.get('DEFAULT_AUTHENTICATION_CLASSES'))
+print("🔍 DEBUG PERMISSION CLASSES:", REST_FRAMEWORK.get('DEFAULT_PERMISSION_CLASSES'))
 
 from datetime import timedelta
 SIMPLE_JWT = {

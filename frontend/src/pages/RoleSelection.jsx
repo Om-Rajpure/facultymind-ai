@@ -7,7 +7,7 @@ import { UserCircle, ShieldCheck } from 'lucide-react';
 
 
 const RoleSelection = () => {
-  const { tokens, updateProfile } = useAuth();
+  const { updateProfile } = useAuth();
   const navigate = useNavigate();
 
   const handleRoleSelect = async (role) => {

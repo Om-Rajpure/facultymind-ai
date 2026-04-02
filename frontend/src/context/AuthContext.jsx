@@ -1,79 +1,78 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useUser, useAuth as useClerkAuth } from "@clerk/react";
-import api from '../api/axios';
+import api, { setClerkTokenGetter } from '../api/axios';
 
 const AuthContext = createContext();
-
-
 
 export const AuthProvider = ({ children }) => {
   const { isLoaded: isClerkLoaded, user: clerkUser, isSignedIn } = useUser();
   const { getToken } = useClerkAuth();
   
   const [user, setUser] = useState(null);
-  const [tokens, setTokens] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Wire Clerk's getToken into the axios interceptor so EVERY
+  // request automatically gets a fresh token (no caching).
+  useEffect(() => {
+    if (getToken) {
+      setClerkTokenGetter(getToken);
+      console.log("[AuthContext] Clerk getToken wired into axios interceptor");
+    }
+  }, [getToken]);
 
   // Sync with backend when Clerk user is loaded and signed in
   useEffect(() => {
     const syncWithBackend = async () => {
-      console.log("AUTH DEBUG → isClerkLoaded:", isClerkLoaded);
-      console.log("AUTH DEBUG → isSignedIn:", isSignedIn);
-      console.log("AUTH DEBUG → Clerk User:", clerkUser);
+      console.log("[AuthContext] isClerkLoaded:", isClerkLoaded);
+      console.log("[AuthContext] isSignedIn:", isSignedIn);
 
       if (isClerkLoaded && isSignedIn && clerkUser) {
         try {
           setLoading(true);
-          console.log("AUTH DEBUG → Syncing with backend...");
+          console.log("[AuthContext] Syncing with backend...");
+
+          // Fetch a fresh Clerk token with skipCache: true
+          const freshToken = await getToken({ skipCache: true });
           
-          // Get Clerk Token
-          const token = await getToken();
-          if (!token) {
-            console.error("AUTH DEBUG → No Clerk token available");
+          if (!freshToken) {
+            console.error("[AuthContext] No Clerk token available — cannot sync");
             setLoading(false);
             return;
           }
-          console.log("AUTH DEBUG → Clerk Token obtained");
+          
+          console.log("[AuthContext] Fresh Clerk token obtained, length:", freshToken.length);
 
+          // The interceptor will also attach a fresh token, but we pass
+          // one explicitly here as a safety measure for the sync call.
           const response = await api.post("/api/accounts/sync-user/", {
             clerk_id: clerkUser.id,
             email: clerkUser.primaryEmailAddress?.emailAddress,
             name: clerkUser.fullName || clerkUser.username || '',
           }, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${freshToken}`,
             },
           });
 
-          console.log("AUTH DEBUG → Backend response:", response.data);
-          const { user: backendUser, access, refresh } = response.data;
+          console.log("[AuthContext] Backend sync response:", response.data);
+          const { user: backendUser } = response.data;
           
           if (backendUser) {
-            console.log("AUTH DEBUG → Backend User:", backendUser);
+            console.log("[AuthContext] Backend user synced:", backendUser);
             setUser(backendUser);
-            setTokens({ access, refresh });
-            
-            // Store tokens in localStorage for axios interceptors if needed
-            localStorage.setItem('facultymind_access', access);
-            localStorage.setItem('facultymind_refresh', refresh);
           } else {
-            console.error("AUTH DEBUG → No user data in response");
+            console.error("[AuthContext] No user data in backend response");
           }
         } catch (error) {
-          console.error('AUTH DEBUG → Backend sync failed:', error);
-          // Stop loading loop even on error
-          setLoading(false);
+          console.error("[AuthContext] Backend sync failed:", error);
         } finally {
           setLoading(false);
-          console.log("AUTH DEBUG → loading set to false");
+          console.log("[AuthContext] Loading set to false");
         }
       } else if (isClerkLoaded && !isSignedIn) {
-        console.log("AUTH DEBUG → User not signed in, clearing state");
+        console.log("[AuthContext] User not signed in, clearing state");
         setUser(null);
-        setTokens(null);
         setLoading(false);
-        localStorage.removeItem('facultymind_access');
-        localStorage.removeItem('facultymind_refresh');
       }
     };
 
@@ -89,7 +88,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, tokens, loading, setUser, updateProfile, setWorkspace }}>
+    <AuthContext.Provider value={{ user, loading, setUser, updateProfile, setWorkspace }}>
       {children}
     </AuthContext.Provider>
   );

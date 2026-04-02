@@ -8,24 +8,17 @@ import api from '../api/axios';
 
 
 const Dashboard = () => {
-  const { user, tokens } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
   console.log("USER:", user);
-  console.log("TOKENS:", tokens);
   console.log("API URL:", import.meta.env.VITE_API_URL);
 
   useEffect(() => {
-    if (!tokens || !tokens.access) {
-      console.log("⛔ Tokens not ready (Dashboard)");
-      return;
-    }
-    
-    console.log("✅ Tokens ready, calling notifications API");
     fetchNotifications();
-  }, [tokens]);
+  }, []);
 
   const fetchNotifications = async () => {
     try {

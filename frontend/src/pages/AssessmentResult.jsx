@@ -38,20 +38,14 @@ import { useAuth } from '../context/AuthContext';
 const AssessmentResult = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user, tokens } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   console.log("USER:", user);
-  console.log("TOKENS:", tokens);
   console.log("LOADING:", loading);
 
   useEffect(() => {
-    if (!tokens || !tokens.access) {
-      console.log("⛔ Tokens not ready");
-      return;
-    }
-
-    console.log("✅ Tokens ready, calling API");
+    console.log("✅ Component mounted, calling API");
     console.log("API URL:", import.meta.env.VITE_API_URL);
 
     const fetchResults = async () => {
@@ -69,7 +63,7 @@ const AssessmentResult = () => {
     };
 
     fetchResults();
-  }, [tokens]);
+  }, []);
 
   if (loading) {
     return (

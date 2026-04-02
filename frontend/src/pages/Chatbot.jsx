@@ -51,7 +51,6 @@ export default function ChatbotPage() {
   const [chips, setChips] = useState(QUICK_CHIPS);
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState(null);
-  const { tokens } = useAuth();
   const [loading, setLoading] = useState(true);
   const [typing, setTyping] = useState(false);
   const [reminders, setReminders] = useState([]);

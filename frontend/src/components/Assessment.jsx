@@ -50,7 +50,7 @@ const Assessment = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(false);
-  const { user, tokens } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleOptionSelect = (value) => {

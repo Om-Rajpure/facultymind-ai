@@ -58,7 +58,6 @@ export default function ChatWidget() {
   const [sessionId, setSessionId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [typing, setTyping] = useState(false);
-  const { tokens } = useAuth();
   const bottomRef = useRef(null);
 
   // Detect if user has assessment data (enriches responses)

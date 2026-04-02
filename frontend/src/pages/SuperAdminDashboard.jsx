@@ -38,7 +38,7 @@ const StatCard = ({ title, value, icon: Icon, color }) => (
 );
 
 const SuperAdminDashboard = () => {
-  const { user, tokens } = useAuth();
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,14 +51,8 @@ const SuperAdminDashboard = () => {
   });
 
   useEffect(() => {
-    if (!tokens || !tokens.access) {
-      console.log("⛔ Tokens not ready (SuperAdminDashboard)");
-      return;
-    }
-
-    console.log("✅ Tokens ready, calling superadmin API");
     fetchUsers();
-  }, [tokens]);
+  }, []);
 
   const fetchUsers = async () => {
     try {

@@ -9,7 +9,7 @@ import Section from '../components/ui/Section';
 
 const AdminAI = () => {
   const navigate = useNavigate();
-  const { tokens } = useAuth();
+  const { user } = useAuth();
   const [messages, setMessages] = useState([
     { role: 'bot', content: "Hello Admin. I've analyzed the latest faculty burnout trends. How can I assist you with institutional wellness monitoring today?" }
   ]);
@@ -19,14 +19,8 @@ const AdminAI = () => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    if (!tokens || !tokens.access) {
-      console.log("⛔ Tokens not ready (AdminAI)");
-      return;
-    }
-
-    console.log("✅ Tokens ready, calling AI context API");
     fetchContext();
-  }, [tokens]);
+  }, []);
 
   const fetchContext = async () => {
     try {

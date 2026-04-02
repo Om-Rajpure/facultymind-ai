@@ -1,0 +1,111 @@
+🔍 DEBUG INSTALLED APPS: ['django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes', 'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles', 'django.contrib.sites', 'rest_framework', 'rest_framework_simplejwt', 'corsheaders', 'allauth', 'allauth.account', 'allauth.socialaccount', 'allauth.socialaccount.providers.google', 'apps.accounts', 'apps.workspaces', 'apps.assessments']
+🔍 DEBUG MIDDLEWARE: ['corsheaders.middleware.CorsMiddleware', 'django.middleware.common.CommonMiddleware', 'django.middleware.security.SecurityMiddleware', 'whitenoise.middleware.WhiteNoiseMiddleware', 'django.contrib.sessions.middleware.SessionMiddleware', 'django.middleware.csrf.CsrfViewMiddleware', 'django.contrib.auth.middleware.AuthenticationMiddleware', 'django.contrib.messages.middleware.MessageMiddleware', 'django.middleware.clickjacking.XFrameOptionsMiddleware', 'allauth.account.middleware.AccountMiddleware']
+🔍 DEBUG AUTH CLASSES: ('apps.accounts.authentication.ClerkAuthentication',)
+🔍 DEBUG PERMISSION CLASSES: ('rest_framework.permissions.IsAuthenticated',)
+
+======================================================================
+[DEBUG] AUTHENTICATION DEBUG REPORT
+======================================================================
+
+[1] REST_FRAMEWORK SETTINGS:
+   DEFAULT_AUTHENTICATION_CLASSES: ('apps.accounts.authentication.ClerkAuthentication',)
+   DEFAULT_PERMISSION_CLASSES: ('rest_framework.permissions.IsAuthenticated',)
+
+[2] MIDDLEWARE:
+   0. corsheaders.middleware.CorsMiddleware
+   1. django.middleware.common.CommonMiddleware
+   2. django.middleware.security.SecurityMiddleware
+   3. whitenoise.middleware.WhiteNoiseMiddleware
+   4. django.contrib.sessions.middleware.SessionMiddleware
+   5. django.middleware.csrf.CsrfViewMiddleware
+   6. django.contrib.auth.middleware.AuthenticationMiddleware
+   7. django.contrib.messages.middleware.MessageMiddleware
+   8. django.middleware.clickjacking.XFrameOptionsMiddleware
+   9. allauth.account.middleware.AccountMiddleware
+
+[3] INSTALLED_APPS:
+   0. django.contrib.admin
+   1. django.contrib.auth
+   2. django.contrib.contenttypes
+   3. django.contrib.sessions
+   4. django.contrib.messages
+   5. django.contrib.staticfiles
+   6. django.contrib.sites
+   7. rest_framework
+   8. rest_framework_simplejwt
+   9. corsheaders
+   10. allauth
+   11. allauth.account
+   12. allauth.socialaccount
+   13. allauth.socialaccount.providers.google
+   14. apps.accounts
+   15. apps.workspaces
+   16. apps.assessments
+
+[4] ClerkAuthentication CLASS CHECK:
+   OK - ClerkAuthentication imported and instantiated successfully
+   Class: <class 'apps.accounts.authentication.ClerkAuthentication'>
+   Module: apps.accounts.authentication
+
+[5] SyncUserView AUTH CLASS CHECK:
+   authentication_classes: [<class 'apps.accounts.authentication.ClerkAuthentication'>]
+   permission_classes: [<class 'rest_framework.permissions.AllowAny'>]
+
+[6] OTHER VIEW AUTH CLASS CHECKS:
+   SetRoleView.authentication_classes: [<class 'apps.accounts.authentication.ClerkAuthentication'>]
+   SetRoleView.permission_classes: [<class 'rest_framework.permissions.IsAuthenticated'>]
+   SetupProfileView.authentication_classes: [<class 'apps.accounts.authentication.ClerkAuthentication'>]
+   UserDetailView.authentication_classes: [<class 'apps.accounts.authentication.ClerkAuthentication'>]
+
+[7] SIMULATED REQUEST TO /api/accounts/sync-user/:
+--------------------------------------------------
+
+   Test A: POST without Authorization header
+============================================================
+🚨🚨🚨 ClerkAuthentication.authenticate() RUNNING 🚨🚨🚨
+🚨 Authorization header present: False
+🚨 Auth header value: None
+============================================================
+🚨 No valid Bearer token found — returning None (skip auth)
+============================================================
+🔄 SyncUserView CALLED
+🔍 AUTHENTICATION CLASSES ON VIEW: [<class 'apps.accounts.authentication.ClerkAuthentication'>]
+🔍 PERMISSION CLASSES ON VIEW: [<class 'rest_framework.permissions.AllowAny'>]
+🔍 HEADERS: {'Cookie': '', 'Content-Length': '44', 'Content-Type': 'application/json'}
+🔍 USER TYPE: <class 'django.contrib.auth.models.AnonymousUser'>
+🔍 USER VALUE: AnonymousUser
+🔍 USER IS_AUTHENTICATED: False
+🔍 request.auth: None
+============================================================
+🔄 Fallback flow: clerk_id=None, email=test@test.com
+   Response status: 400
+   Response data: {'error': 'clerk_id is required'}
+
+   Test B: POST with fake Bearer token
+============================================================
+🚨🚨🚨 ClerkAuthentication.authenticate() RUNNING 🚨🚨🚨
+🚨 Authorization header present: True
+🚨 Auth header value: Bearer fake_token_12345
+============================================================
+✅ ClerkAuthentication: JWKS fetched successfully
+   Response status: 401
+   Response data: {'detail': ErrorDetail(string='Invalid token: Not enough segments', code='authentication_failed')}
+
+[8] CLERK JWKS CONNECTIVITY:
+   CLERK_JWKS_URL: https://cuddly-treefrog-24.clerk.accounts.dev/.well-known/jwks.json
+✅ ClerkAuthentication: JWKS fetched successfully
+   OK - JWKS fetched - 1 key(s) found
+      kid=ins_3AyNddR6yKEks7owbAiN9LhzLfV, kty=RSA, alg=RS256
+
+[9] USER MODEL CHECK:
+   AUTH_USER_MODEL: accounts.User
+   Resolved model: <class 'apps.accounts.models.User'>
+   Has clerk_id field: True
+   Total users in DB: 3
+      - omrajpure3 | clerk_id=user_3B4gXFNtwx9U3VOUKvUxMkzAo4g | email=omrajpure3@gmail.com
+      - omrajpure2005 | clerk_id=user_3BO8NR9OCWXV8jQp3WVv5JWyJih | email=omrajpure2005@gmail.com
+      - gamepaglu2005 | clerk_id=user_3BPghFlKeiMjAxhiYbWrbZUKKn7 | email=gamepaglu2005@gmail.com
+
+======================================================================
+[DEBUG] REPORT COMPLETE
+======================================================================

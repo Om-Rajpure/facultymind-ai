@@ -7,7 +7,7 @@ import { User, Briefcase, Building2, Calendar, Award } from 'lucide-react';
 
 
 const ProfileSetup = () => {
-  const { user, tokens, updateProfile } = useAuth();
+  const { user, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({

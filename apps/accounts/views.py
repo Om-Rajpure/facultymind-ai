@@ -46,9 +46,16 @@ class SyncUserView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        print("=" * 60)
         print("🔄 SyncUserView CALLED")
-        print(f"🔄 request.user type: {type(request.user)}")
-        print(f"🔄 request.user: {request.user}")
+        print(f"🔍 AUTHENTICATION CLASSES ON VIEW: {self.authentication_classes}")
+        print(f"🔍 PERMISSION CLASSES ON VIEW: {self.permission_classes}")
+        print(f"🔍 HEADERS: {dict(request.headers)}")
+        print(f"🔍 USER TYPE: {type(request.user)}")
+        print(f"🔍 USER VALUE: {request.user}")
+        print(f"🔍 USER IS_AUTHENTICATED: {getattr(request.user, 'is_authenticated', 'N/A')}")
+        print(f"🔍 request.auth: {request.auth}")
+        print("=" * 60)
 
         # Determine clerk_id, email, name from either the JWT payload or request body
         if isinstance(request.user, dict):

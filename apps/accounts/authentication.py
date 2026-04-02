@@ -60,12 +60,16 @@ class ClerkAuthentication(authentication.BaseAuthentication):
     """
 
     def authenticate(self, request):
+        print("=" * 60)
+        print("🚨🚨🚨 ClerkAuthentication.authenticate() RUNNING 🚨🚨🚨")
+        print(f"🚨 Authorization header present: {'Authorization' in request.headers}")
         auth_header = request.headers.get("Authorization")
+        print(f"🚨 Auth header value: {auth_header[:50] + '...' if auth_header and len(auth_header) > 50 else auth_header}")
+        print("=" * 60)
 
         if not auth_header or not auth_header.startswith("Bearer "):
+            print("🚨 No valid Bearer token found — returning None (skip auth)")
             return None
-
-        print("✅ ClerkAuthentication CALLED")
 
         try:
             token = auth_header.split(" ")[1]

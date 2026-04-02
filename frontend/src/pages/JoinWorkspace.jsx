@@ -10,7 +10,7 @@ const JoinWorkspace = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [success, setSuccess] = useState(false);
-  const { setWorkspace, tokens } = useAuth();
+  const { setWorkspace } = useAuth();
   const navigate = useNavigate();
 
   const handleJoin = async (e) => {
